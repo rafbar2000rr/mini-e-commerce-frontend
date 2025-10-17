@@ -1,0 +1,157 @@
+/* 🔹 Contenedor principal del catálogo */
+.catalogo {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background-color: rgb(232, 194, 237);
+  border-radius: 10px;
+}
+
+.catalogo h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color:#e30a0a;
+  font-weight: bold;
+}
+
+/* 🔹 Bloque de filtros */
+.filtros {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 10px;
+}
+
+.filtros label {
+  font-weight: bold;
+  color: #333;
+}
+
+.filtros select {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.filtros select:hover {
+  border-color: #ff0051;
+}
+
+/* 🔹 Productos */
+.productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.producto {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.producto img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.producto h3 {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+.producto .precio {
+  color: #ff1e62;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.error {
+  color: red;
+  text-align: center;
+}
+
+/* 🔹 Botón de carrito */
+.btn-carrito {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #ff1ea1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-carrito:hover {
+  background-color: #d119a0;
+}
+
+/* 🔹 Paginación */
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.paginacion button {
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.paginacion button:hover:not(:disabled) {
+  background-color: #ff002f;
+  color: #fff;
+  border-color: #e30a0a;
+}
+
+.paginacion button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginacion button.activo {
+  background-color: #ff0051;
+  color: white;
+  font-weight: bold;
+  border: 1px solid #090101;
+}
+
+/* 🔹 Exterior del catálogo */
+.catalogo-exterior {
+  background-color: #f0e9f0; 
+  padding: 40px 20px;
+  min-height: 100vh;
+}
+
+.precio-boton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stock {
+  font-weight: bold;
+  color: green;
+  margin: 4px 0;
+}
+
+.stock.agotado {
+  color: red;
+}
+
