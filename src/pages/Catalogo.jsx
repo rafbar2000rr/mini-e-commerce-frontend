@@ -16,33 +16,33 @@ function Catalogo() {
 
   const { agregarAlCarrito } = useContext(CarritoContext);
   const API_URL = import.meta.env.VITE_API_URL;
-  // ✅ Cargar categorías
+
+  // 🔹 Cargar categorías
   useEffect(() => {
     fetch(`${API_URL}/categorias`)
       .then((res) => res.json())
-      .then((data) => setCategorias(data))
+      .then((data) => setCategorias(Array.isArray(data) ? data : []))
       .catch(() => setError("Error al cargar categorías"));
   }, []);
 
-  // ✅ Cargar productos
+  // 🔹 Cargar productos
   useEffect(() => {
-  // 🔹 Definimos API_URL dentro del useEffect para evitar warnings
-  const API_URL = import.meta.env.VITE_API_URL;
+    setLoading(true);
+    setError("");
 
-  setLoading(true);
-
-  fetch(
-    `${API_URL}/productos?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      setProductos(data.productos || []);
-      setPages(data.pages || 1);
-    })
-    .catch(() => setError("Error al cargar productos"))
-    .finally(() => setLoading(false));
-}, [page, categoriaSeleccionada, busqueda]); // ✅ Array de dependencias limpio
-
+    fetch(
+      `${API_URL}/productos?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        // ✅ Validar que productos sea un array
+        setProductos(Array.isArray(data.productos) ? data.productos : []);
+        // ✅ Validar que pages sea un número mayor a 0
+        setPages(typeof data.pages === "number" && data.pages > 0 ? data.pages : 1);
+      })
+      .catch(() => setError("Error al cargar productos"))
+      .finally(() => setLoading(false));
+  }, [page, categoriaSeleccionada, busqueda]);
 
   return (
     <div className="catalogo-exterior">
@@ -76,9 +76,11 @@ function Catalogo() {
             }}
           >
             <option value="">Todas</option>
-            {categorias.map((cat, i) => (
-              <option key={i} value={cat._id}>{cat.nombre}</option>
-            ))}
+            {Array.isArray(categorias) &&
+              categorias.map((cat, i) => (
+                <option key={i} value={cat._id}>{cat.nombre}</option>
+              ))
+            }
           </select>
         </div>
 
@@ -88,49 +90,46 @@ function Catalogo() {
           <p className="cargando">Cargando productos...</p>
         ) : (
           <>
-            {/* 🧃 Productos */}
             <div className="productos">
-              {productos.map((producto) => (
-                <div key={producto._id} className="producto">
-                  <Link to={`/producto/${producto._id}`}>
-                    <img
-                      src={`${API_URL}/uploads/${producto.imagen}`}
-                      alt={producto.nombre}
-                    />
-                  </Link>
-
-                  <h3>
+              {Array.isArray(productos) && productos.length > 0 ? (
+                productos.map((producto) => (
+                  <div key={producto._id} className="producto">
                     <Link to={`/producto/${producto._id}`}>
-                      {producto.nombre}
+                      <img
+                        src={`${API_URL}/uploads/${producto.imagen}`}
+                        alt={producto.nombre}
+                      />
                     </Link>
-                  </h3>
-
-                  <p>{producto.descripcion}</p>
-
-                  {/* 💡 Mostrar stock */}
-                  <p className={`stock ${producto.stock === 0 ? "agotado" : ""}`}>
-                    {producto.stock > 0
-                      ? `Stock disponible: ${producto.stock}`
-                      : "Producto agotado"}
-                  </p>
-
-                  <div className="precio-boton">
-                    <p className="precio">${producto.precio}</p>
-
-                    <button
-                      className="btn-carrito"
-                      onClick={() => agregarAlCarrito(producto)}
-                      disabled={producto.stock === 0}
-                    >
-                      {producto.stock === 0 ? "Agotado" : "Agregar al carrito"}
-                    </button>
+                    <h3>
+                      <Link to={`/producto/${producto._id}`}>
+                        {producto.nombre}
+                      </Link>
+                    </h3>
+                    <p>{producto.descripcion}</p>
+                    <p className={`stock ${producto.stock === 0 ? "agotado" : ""}`}>
+                      {producto.stock > 0
+                        ? `Stock disponible: ${producto.stock}`
+                        : "Producto agotado"}
+                    </p>
+                    <div className="precio-boton">
+                      <p className="precio">${producto.precio}</p>
+                      <button
+                        className="btn-carrito"
+                        onClick={() => agregarAlCarrito(producto)}
+                        disabled={producto.stock === 0}
+                      >
+                        {producto.stock === 0 ? "Agotado" : "Agregar al carrito"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p>No hay productos disponibles 😢</p>
+              )}
             </div>
 
             {/* 📄 Paginación */}
-            {productos.length > 0 && (
+            {pages > 1 && (
               <div className="paginacion">
                 <button
                   disabled={page === 1}
@@ -152,10 +151,7 @@ function Catalogo() {
 
                 <button
                   disabled={page === pages}
-                  style={{
-                    color: page === pages ? "gray" : "red",
-                    fontSize: "18px",
-                  }}
+                  style={{ color: page === pages ? "gray" : "red", fontSize: "18px" }}
                   onClick={() => setPage(page + 1)}
                 >
                   <FaArrowRight />
