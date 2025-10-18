@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { CarritoContext } from "../context/CarritoContext";
-import { PayPalButtons } from "@paypal/react-paypal-js";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 export default function Checkout() {
   const { carrito, setCarrito } = useContext(CarritoContext);
@@ -64,6 +64,12 @@ export default function Checkout() {
   );
 
   return (
+  <PayPalScriptProvider
+    options={{
+      "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID,
+      currency: "USD",
+    }}
+  >
     <div className="flex flex-col items-center min-h-screen bg-pink-50 p-6">
       <h1 className="text-3xl font-bold text-pink-600 mb-6">Checkout 💖</h1>
 
@@ -94,7 +100,7 @@ export default function Checkout() {
         </h3>
       </div>
 
-      {/* Datos de envío */}
+      {/* Datos de envío + PayPal */}
       <div className="w-full max-w-md bg-white rounded-xl shadow-md p-6 space-y-4">
         <h2 className="text-xl font-semibold text-pink-500 mb-4">
           Datos de envío
@@ -139,86 +145,81 @@ export default function Checkout() {
           className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
         />
 
-        {/* 🔹 Botón PayPal */}
+        {/* Botón de PayPal */}
         <PayPalButtons
-  style={{ layout: "vertical" }}
-  createOrder={async () => {
-    try {
-      // Transformar carrito para que cada producto tenga productoId y cantidad
-      const productos = carrito.map(p => ({
-        productoId: p._id || p.id,
-        cantidad: p.cantidad,
-      }));
-      const res = await fetch("${API_URL}/paypal/api/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          total,
-          productos,
-          datosCliente: { ...usuario, ...cliente },
-        }),
-      });
+          style={{ layout: "vertical" }}
+          createOrder={async () => {
+            try {
+              const productos = carrito.map((p) => ({
+                productoId: p._id || p.id,
+                cantidad: p.cantidad,
+              }));
+              const res = await fetch(`${API_URL}/paypal/api/create-order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  total,
+                  productos,
+                  datosCliente: { ...usuario, ...cliente },
+                }),
+              });
+              const data = await res.json();
+              return data.id;
+            } catch (err) {
+              console.error("❌ Error creando orden:", err);
+            }
+          }}
+          onApprove={async (data) => {
+            try {
+              const token = localStorage.getItem("token");
+              const productos = carrito.map((p) => ({
+                productoId: p._id || p.id,
+                cantidad: p.cantidad,
+              }));
 
-      const data = await res.json();
-      return data.id; // 🔥 orderID que devuelve el backend
-    } catch (err) {
-      console.error("❌ Error creando orden:", err);
-    }
-  }}
-  onApprove={async (data) => {
-  try {
-    const token = localStorage.getItem("token"); // ✅ Obtener token del usuario logueado
+              const res = await fetch(
+                `${API_URL}/paypal/api/capture-order/${data.orderID}`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    productos,
+                    datosCliente: { ...usuario, ...cliente },
+                  }),
+                }
+              );
 
-    const productos = carrito.map((p) => ({
-      productoId: p._id || p.id,
-      cantidad: p.cantidad,
-    }));
+              const capture = await res.json();
 
-    const res = await fetch(
-      `${API_URL}/paypal/api/capture-order/${data.orderID}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ Enviar token al backend
-        },
-        body: JSON.stringify({
-          productos,
-          datosCliente: { ...usuario, ...cliente },
-        }),
-      }
-    );
+              if (!res.ok) {
+                const mensaje =
+                  capture.detalle ||
+                  capture.error ||
+                  "Error al procesar la compra";
+                setError(mensaje);
+                alert("❌ " + mensaje);
+                return;
+              }
 
-    const capture = await res.json();
+              console.log("✅ Pago exitoso:", capture);
 
-    if (!res.ok) {
-      const mensaje =
-        capture.detalle || capture.error || "Error al procesar la compra";
-      setError(mensaje);
-      alert("❌ " + mensaje);
-      return;
-    }
-
-    console.log("✅ Pago exitoso:", capture);
-
-    // ✅ Vaciar carrito en frontend
-    setCarrito([]);
-    localStorage.removeItem("carrito");
-
-    // ✅ Mensaje y redirección
-    alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
-    window.location.href = "/mis-ordenes";
-  } catch (err) {
-    console.error("❌ Error capturando pago:", err);
-    setError("Error al conectar con el servidor. Intenta nuevamente.");
-  }
-}}
-
-/>
-
+              setCarrito([]);
+              localStorage.removeItem("carrito");
+              alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
+              window.location.href = "/mis-ordenes";
+            } catch (err) {
+              console.error("❌ Error capturando pago:", err);
+              setError("Error al conectar con el servidor. Intenta nuevamente.");
+            }
+          }}
+        />
       </div>
     </div>
-  );
+  </PayPalScriptProvider>
+);
 }
 
 
