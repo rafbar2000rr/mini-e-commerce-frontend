@@ -23,7 +23,7 @@ function Login() {
   const API_URL = import.meta.env.VITE_API_URL;
     try {
       // enviamos la petición al backend con email y contraseña
-      const res = await fetch('${API_URL}/login', {
+      const res = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
