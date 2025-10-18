@@ -42,7 +42,7 @@ function Login() {
 
         if (carritoLocal.length > 0) {
           // Si hay productos en localStorage, sincronizamos con backend
-          const syncRes = await fetch("${API_URL}/carrito/sincronizar", {
+          const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
