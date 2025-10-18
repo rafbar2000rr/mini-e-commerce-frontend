@@ -1,12 +1,28 @@
-# React + Vite
+# 🛍️ Mini E-Commerce — Frontend  
+**Autor:** Rafael Ibarra  
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este es el frontend del proyecto **Mini E-Commerce**, una tienda online desarrollada con **React** y **Vite**.  
+El frontend se conecta con el backend (Node.js y Express) desplegado en **Railway** y ofrece una interfaz moderna, rápida y responsiva para explorar productos, gestionarlos y realizar compras simuladas mediante **PayPal Sandbox**.
 
-Currently, two official plugins are available:
+## ✨ Características principales
+- Diseño responsivo y moderno con **Tailwind CSS**.  
+- Integración con API REST del backend.  
+- Manejo de usuarios autenticados con **JWT**.  
+- **Carrito de compras** persistente y sincronizado con el backend.  
+- **Flujo de pago** completo con **PayPal Sandbox**.  
+- Visualización de productos, detalles y actualización de stock.  
+- Manejo de rutas y navegación dinámica con **React Router**.  
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ⚙️ Tecnologías utilizadas
+- **React + Vite**  
+- **Tailwind CSS**  
+- **React Router DOM**  
+- **Axios** para las peticiones HTTP  
+- **PayPal JavaScript SDK** para los pagos  
 
-## Expanding the ESLint configuration
+## 🔗 Conexión al backend
+El frontend se comunica con el backend desplegado en Railway.  
+La URL del backend se configura mediante variables de entorno en el archivo `.env`:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+VITE_API_URL=https://mini-e-commerce-backend-production.up.railway.app
