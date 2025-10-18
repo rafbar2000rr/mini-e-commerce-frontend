@@ -23,7 +23,7 @@ function Registro() {
 
     try {
       // enviamos datos al backend
-      const res = await fetch('${API_URL}/register', {
+      const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json', // enviamos JSON
