@@ -26,18 +26,23 @@ function Catalogo() {
 
   // ✅ Cargar productos
   useEffect(() => {
-    setLoading(true); 
-    fetch(
-      `${API_URL}/productos?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setProductos(data.productos || []); 
-        setPages(data.pages || 1); 
-      })
-      .catch(() => setError("Error al cargar productos")) 
-      .finally(() => setLoading(false)); 
-  }, [page, categoriaSeleccionada, busqueda]);
+  // 🔹 Definimos API_URL dentro del useEffect para evitar warnings
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  setLoading(true);
+
+  fetch(
+    `${API_URL}/productos?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      setProductos(data.productos || []);
+      setPages(data.pages || 1);
+    })
+    .catch(() => setError("Error al cargar productos"))
+    .finally(() => setLoading(false));
+}, [page, categoriaSeleccionada, busqueda]); // ✅ Array de dependencias limpio
+
 
   return (
     <div className="catalogo-exterior">
