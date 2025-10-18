@@ -28,7 +28,7 @@ export function CarritoProvider({ children }) {
       if (usuario?.token) {// 1️⃣ Solo si el usuario está logueado
         try {
           
-          const res = await fetch("${API_URL}/carrito", {
+          const res = await fetch(`${API_URL}/carrito`, {
             headers: { Authorization: `Bearer ${usuario.token}` },// se manda el token
           });
           if (res.ok) {// 2️⃣ Si la respuesta es correcta (200-299)
