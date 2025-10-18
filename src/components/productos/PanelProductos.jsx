@@ -9,12 +9,12 @@ export default function PanelProductos() {
 
   const [categorias, setCategorias] = useState([]);
   const [nuevaCategoria, setNuevaCategoria] = useState("");
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // 🔹 Cargar categorías
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/categorias");
+        const res = await axios.get("${API_URL}/categorias");
         setCategorias(res.data);
       } catch (error) {
         console.error("❌ Error al cargar categorías:", error.message);
@@ -29,7 +29,7 @@ export default function PanelProductos() {
     if (!nuevaCategoria.trim()) return;
 
     try {
-      const res = await axios.post("http://localhost:5000/categorias", { nombre: nuevaCategoria });
+      const res = await axios.post("${API_URL}/categorias", { nombre: nuevaCategoria });
       setCategorias([...categorias, res.data]); // ✅ agregamos directo al estado
       setNuevaCategoria("");
     } catch (error) {
@@ -41,7 +41,7 @@ export default function PanelProductos() {
   const handleEliminarCategoria = async (id) => {
     if (!window.confirm("¿Seguro que quieres eliminar esta categoría?")) return;
     try {
-      await axios.delete(`http://localhost:5000/categorias/${id}`);
+      await axios.delete(`${API_URL}/categorias/${id}`);
       setCategorias(categorias.filter((c) => c._id !== id)); // ✅ actualizamos sin refrescar
     } catch (error) {
       console.error("❌ Error al eliminar categoría:", error.message);

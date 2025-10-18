@@ -16,7 +16,7 @@ export default function MisOrdenes() {
 
   // ✅ Detectar cambios en la ruta (para refrescar automáticamente)
   const location = useLocation();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // ✅ useEffect → se ejecuta al montar para traer órdenes del usuario
   useEffect(() => {
   (async () => {
@@ -30,7 +30,7 @@ export default function MisOrdenes() {
       }
 
       // 🔹 pedimos órdenes al backend
-      const res = await fetch('http://localhost:5000/my-orders', {
+      const res = await fetch('${API_URL}/my-orders', {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -97,7 +97,7 @@ export default function MisOrdenes() {
                   {/* ✅ Miniatura usando productoId.imagen */}
                   {primerProducto?.imagen ? (
                     <img
-                      src={`http://localhost:5000/uploads/${primerProducto.imagen}`}
+                      src={`${API_URL}/uploads/${primerProducto.imagen}`}
                       alt={primerProducto.nombre}
                       className="w-16 h-16 object-cover rounded-lg border"
                     />

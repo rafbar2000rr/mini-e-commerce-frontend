@@ -20,10 +20,10 @@ function Login() {
   // ✅ Manejo del login
   const handleLogin = async (e) => {
     e.preventDefault(); // evita que se recargue la página
-
+  const API_URL = import.meta.env.VITE_API_URL;
     try {
       // enviamos la petición al backend con email y contraseña
-      const res = await fetch('http://localhost:5000/login', {
+      const res = await fetch('${API_URL}/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -42,7 +42,7 @@ function Login() {
 
         if (carritoLocal.length > 0) {
           // Si hay productos en localStorage, sincronizamos con backend
-          const syncRes = await fetch("http://localhost:5000/carrito/sincronizar", {
+          const syncRes = await fetch("${API_URL}/carrito/sincronizar", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

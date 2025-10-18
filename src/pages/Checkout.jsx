@@ -13,7 +13,7 @@ export default function Checkout() {
 
   const [usuario, setUsuario] = useState({ nombre: "", email: "" });
   const [error, setError] = useState("");
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // 🔹 Autocompletar usuario logueado
   useEffect(() => {
   const fetchUsuario = async () => {
@@ -25,7 +25,7 @@ export default function Checkout() {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/me", {
+      const res = await fetch("${API_URL}/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -149,7 +149,7 @@ export default function Checkout() {
         productoId: p._id || p.id,
         cantidad: p.cantidad,
       }));
-      const res = await fetch("http://localhost:5000/paypal/api/create-order", {
+      const res = await fetch("${API_URL}/paypal/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -175,7 +175,7 @@ export default function Checkout() {
     }));
 
     const res = await fetch(
-      `http://localhost:5000/paypal/api/capture-order/${data.orderID}`,
+      `${API_URL}/paypal/api/capture-order/${data.orderID}`,
       {
         method: "POST",
         headers: {

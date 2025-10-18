@@ -8,10 +8,10 @@ export default function ListaProductos({ refrescar, onEditar }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const fetchProductos = useCallback(async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/productos`, {
+      const res = await axios.get(`${API_URL}/productos`, {
         params: { page, limit: 5, search },
       });
       setProductos(res.data.productos);
@@ -28,7 +28,7 @@ export default function ListaProductos({ refrescar, onEditar }) {
   const eliminarProducto = async (id) => {
     if (!window.confirm("¿Seguro que quieres eliminar este producto?")) return;
     try {
-      await axios.delete(`http://localhost:5000/productos/${id}`);
+      await axios.delete(`${API_URL}/productos/${id}`);
       fetchProductos();
     } catch (error) {
       console.error("Error al eliminar producto:", error);
@@ -37,7 +37,7 @@ export default function ListaProductos({ refrescar, onEditar }) {
 
   const actualizarStock = async (id, cantidad) => {
     try {
-      await axios.patch(`http://localhost:5000/productos/${id}/stock`, {
+      await axios.patch(`${API_URL}/productos/${id}/stock`, {
         cantidad,
       });
       fetchProductos();
@@ -92,7 +92,7 @@ export default function ListaProductos({ refrescar, onEditar }) {
                 <td className="p-3 border-b">
                   {producto.imagen && (
                     <img
-                      src={`http://localhost:5000/uploads/${producto.imagen}`}
+                      src={`${API_URL}/uploads/${producto.imagen}`}
                       alt={producto.nombre}
                       className="w-16 h-16 object-cover rounded-md border"
                     />

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 function Perfil() {
   const [perfil, setPerfil] = useState(null);
   const [error, setError] = useState('');
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const token = localStorage.getItem('token');
 
@@ -12,7 +12,7 @@ function Perfil() {
       return;
     }
 
-    fetch('http://localhost:5000/perfil', {
+    fetch('${API_URL}/perfil', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`

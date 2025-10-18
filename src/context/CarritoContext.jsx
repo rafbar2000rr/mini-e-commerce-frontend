@@ -14,7 +14,7 @@ export function CarritoProvider({ children }) {
 
   // ✅ Estado del usuario logueado (null si no está logueado)
   const [usuario, setUsuario] = useState(null);
-  
+  const API_URL = import.meta.env.VITE_API_URL;
   //-----------------------------------------------------------------------------------
   // ✅ Siempre guardar carrito en localStorage (haya login o no)
   useEffect(() => {
@@ -27,7 +27,8 @@ export function CarritoProvider({ children }) {
     const fetchCarrito = async () => {
       if (usuario?.token) {// 1️⃣ Solo si el usuario está logueado
         try {
-          const res = await fetch("http://localhost:5000/carrito", {
+          
+          const res = await fetch("${API_URL}/carrito", {
             headers: { Authorization: `Bearer ${usuario.token}` },// se manda el token
           });
           if (res.ok) {// 2️⃣ Si la respuesta es correcta (200-299)
@@ -45,7 +46,7 @@ export function CarritoProvider({ children }) {
             // 4️⃣ Si el backend está vacío pero el frontend tenía productos en localStorage
             if (carritoNormalizado.length === 0 && carrito.length > 0) {// sincronizamos el carrito local hacia el backend
               for (const prod of carrito) {
-                await fetch("http://localhost:5000/carrito", {
+                await fetch("${API_URL}/carrito", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -92,7 +93,7 @@ export function CarritoProvider({ children }) {
     // 4️⃣ Si el usuario está logueado, también guarda el cambio en el backend
   if (usuario?.token) {
     try {
-      await fetch("http://localhost:5000/carrito", {
+      await fetch("${API_URL}/carrito", {
         method: "POST", // se crea/agrega producto en el carrito de la BD
         headers: {
           "Content-Type": "application/json",
@@ -119,7 +120,7 @@ export function CarritoProvider({ children }) {
   if (usuario?.token) {
     try {
       // 3️⃣ Hace una petición al backend para eliminar ese producto de la base de datos
-      await fetch(`http://localhost:5000/carrito/${id}`, {
+      await fetch(`${API_URL}/carrito/${id}`, {
         method: "DELETE", // se usa DELETE porque queremos borrar un recurso
         headers: { Authorization: `Bearer ${usuario.token}` }, // se manda el token para autenticación
       });
@@ -143,7 +144,7 @@ export function CarritoProvider({ children }) {
   if (usuario?.token) {
     try {
       // 4️⃣ Manda una petición al backend para vaciar el carrito en la base de datos
-      await fetch("http://localhost:5000/carrito", {
+      await fetch("${API_URL}/carrito", {
         method: "DELETE", // indica que quieres borrar recursos
         headers: { Authorization: `Bearer ${usuario.token}` }, // pasas el token de autenticación
       });
@@ -176,7 +177,7 @@ export function CarritoProvider({ children }) {
   // 3️⃣ Si el usuario está logueado, también actualiza el carrito en la base de datos
   if (usuario?.token) {
     try {
-      await fetch(`http://localhost:5000/carrito/${id}`, {
+      await fetch(`${API_URL}/carrito/${id}`, {
         method: "PUT", // actualizar recurso existente
         headers: {
           "Content-Type": "application/json", // indicamos que mandamos JSON

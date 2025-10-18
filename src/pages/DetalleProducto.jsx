@@ -16,13 +16,13 @@ function DetalleProducto() {
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // ✅ useEffect para cargar el producto cuando cambia el "id"
   useEffect(() => {
     const fetchProducto = async () => {
       try {
         // hacemos la petición al backend para obtener el producto por su id
-        const res = await fetch(`http://localhost:5000/productos/${id}`);
+        const res = await fetch(`${API_URL}/productos/${id}`);
         if (!res.ok) throw new Error("Error al cargar el producto");
 
         // convertimos la respuesta en JSON
@@ -61,8 +61,8 @@ function DetalleProducto() {
 
   // ✅ construir la URL de la imagen del producto
   const imagenUrl = Array.isArray(producto.imagen)
-    ? `http://localhost:5000/uploads/${producto.imagen[0]}` // si es un array, tomamos la primera
-    : `http://localhost:5000/uploads/${producto.imagen}`;   // si es string, lo usamos directamente
+    ? `${API_URL}/uploads/${producto.imagen[0]}` // si es un array, tomamos la primera
+    : `${API_URL}/uploads/${producto.imagen}`;   // si es string, lo usamos directamente
 
   // ✅ renderizado del detalle del producto
   return (

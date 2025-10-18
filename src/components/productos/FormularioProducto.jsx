@@ -12,7 +12,8 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
   const [imagen, setImagen] = useState(null);
 
   const enEdicion = Boolean(productoEditando);
-
+  const API_URL = import.meta.env.VITE_API_URL;
+  
   // 🔹 Llenar formulario si estamos editando
   useEffect(() => {
     if (productoEditando) {
@@ -40,11 +41,11 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
 
     try {
       if (enEdicion) {
-        await axios.put(`http://localhost:5000/productos/${productoEditando._id}`, formData, {
+        await axios.put(`${API_URL}/productos/${productoEditando._id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await axios.post("http://localhost:5000/productos", formData, {
+        await axios.post("${API_URL}/productos", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }

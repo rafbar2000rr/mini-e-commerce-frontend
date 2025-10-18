@@ -6,14 +6,14 @@ function ListaPedidos() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState(""); // 🔎 Nuevo estado de búsqueda
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     fetchOrdenes();
   }, []);
 
   const fetchOrdenes = async () => {
     try {
-      const res = await fetch("http://localhost:5000/orders");
+      const res = await fetch("${API_URL}/orders");
       if (!res.ok) throw new Error("Error al obtener órdenes");
       const data = await res.json();
       setOrdenes(data);
@@ -31,7 +31,7 @@ function ListaPedidos() {
     if (!confirmar) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/orders/${id}`, {
+      const res = await fetch(`${API_URL}/orders/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: nuevoEstado }),

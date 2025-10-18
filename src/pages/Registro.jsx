@@ -16,14 +16,14 @@ function Registro() {
 
   // ✅ Hook de navegación de React Router
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // ✅ Función que maneja el registro del usuario
   const handleRegistro = async (e) => {
     e.preventDefault(); // prevenimos recarga de la página
 
     try {
       // enviamos datos al backend
-      const res = await fetch('http://localhost:5000/register', {
+      const res = await fetch('${API_URL}/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json', // enviamos JSON

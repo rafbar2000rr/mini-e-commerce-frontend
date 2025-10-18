@@ -15,10 +15,10 @@ function Catalogo() {
   const [busqueda, setBusqueda] = useState(""); 
 
   const { agregarAlCarrito } = useContext(CarritoContext);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // ✅ Cargar categorías
   useEffect(() => {
-    fetch("http://localhost:5000/categorias")
+    fetch("${API_URL}/categorias")
       .then((res) => res.json())
       .then((data) => setCategorias(data))
       .catch(() => setError("Error al cargar categorías"));
@@ -28,7 +28,7 @@ function Catalogo() {
   useEffect(() => {
     setLoading(true); 
     fetch(
-      `http://localhost:5000/productos?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
+      `${API_URL}/productos?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -89,7 +89,7 @@ function Catalogo() {
                 <div key={producto._id} className="producto">
                   <Link to={`/producto/${producto._id}`}>
                     <img
-                      src={`http://localhost:5000/uploads/${producto.imagen}`}
+                      src={`${API_URL}/uploads/${producto.imagen}`}
                       alt={producto.nombre}
                     />
                   </Link>

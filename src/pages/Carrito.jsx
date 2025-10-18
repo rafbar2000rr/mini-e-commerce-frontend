@@ -16,7 +16,7 @@ function Carrito() {
     (acc, producto) => acc + (producto.precio || 0) * (producto.cantidad || 1),
     0
   );
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // 🔹 Función para ir al checkout
   const irAlCheckout = () => {
     if (carrito.length === 0) { // Si el carrito está vacío, mostramos alerta
@@ -38,7 +38,7 @@ function Carrito() {
             {carrito.map((producto, index) => (
               <li key={index} className="producto-carrito"> {/* Cada producto */}
                 <img
-                  src={`http://localhost:5000/uploads/${producto.imagen}`}
+                  src={`${API_URL}/uploads/${producto.imagen}`}
                   alt={producto.nombre}
                   width={80}
                   height={80}

@@ -9,7 +9,7 @@ export default function OrdenDetalle() {
   const [orden, setOrden] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     (async () => {
       try {
@@ -20,7 +20,7 @@ export default function OrdenDetalle() {
           return;
         }
 
-        const res = await fetch(`http://localhost:5000/orders/${id}`, {
+        const res = await fetch(`${API_URL}/orders/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -50,7 +50,7 @@ export default function OrdenDetalle() {
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/orders/${orden._id}/pdf`, {
+      const res = await fetch(`${API_URL}/orders/${orden._id}/pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -100,7 +100,7 @@ export default function OrdenDetalle() {
           {orden.productos?.map((p, i) => (
             <div key={i} className="flex items-center gap-4 border-b pb-3">
               <img
-                src={p.imagen ? `http://localhost:5000/uploads/${p.imagen}` : 'https://via.placeholder.com/80'}
+                src={p.imagen ? `${API_URL}/uploads/${p.imagen}` : 'https://via.placeholder.com/80'}
                 alt={p.nombre}
                 className="w-20 h-20 object-cover rounded"
               />
