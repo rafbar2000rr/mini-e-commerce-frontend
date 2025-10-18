@@ -13,7 +13,7 @@ function ListaPedidos() {
 
   const fetchOrdenes = async () => {
     try {
-      const res = await fetch("${API_URL}/orders");
+      const res = await fetch(`${API_URL}/orders`);
       if (!res.ok) throw new Error("Error al obtener órdenes");
       const data = await res.json();
       setOrdenes(data);

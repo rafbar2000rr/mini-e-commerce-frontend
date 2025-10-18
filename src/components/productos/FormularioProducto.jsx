@@ -45,7 +45,7 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await axios.post("${API_URL}/productos", formData, {
+        await axios.post(`${API_URL}/productos`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }

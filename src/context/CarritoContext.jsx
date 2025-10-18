@@ -46,7 +46,7 @@ export function CarritoProvider({ children }) {
             // 4️⃣ Si el backend está vacío pero el frontend tenía productos en localStorage
             if (carritoNormalizado.length === 0 && carrito.length > 0) {// sincronizamos el carrito local hacia el backend
               for (const prod of carrito) {
-                await fetch("${API_URL}/carrito", {
+                await fetch(`${API_URL}/carrito`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -93,7 +93,7 @@ export function CarritoProvider({ children }) {
     // 4️⃣ Si el usuario está logueado, también guarda el cambio en el backend
   if (usuario?.token) {
     try {
-      await fetch("${API_URL}/carrito", {
+      await fetch(`${API_URL}/carrito`, {
         method: "POST", // se crea/agrega producto en el carrito de la BD
         headers: {
           "Content-Type": "application/json",
@@ -144,7 +144,7 @@ export function CarritoProvider({ children }) {
   if (usuario?.token) {
     try {
       // 4️⃣ Manda una petición al backend para vaciar el carrito en la base de datos
-      await fetch("${API_URL}/carrito", {
+      await fetch(`${API_URL}/carrito`, {
         method: "DELETE", // indica que quieres borrar recursos
         headers: { Authorization: `Bearer ${usuario.token}` }, // pasas el token de autenticación
       });

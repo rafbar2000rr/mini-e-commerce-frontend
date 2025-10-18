@@ -25,7 +25,7 @@ export default function Checkout() {
         return;
       }
 
-      const res = await fetch("${API_URL}/me", {
+      const res = await fetch(`${API_URL}/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

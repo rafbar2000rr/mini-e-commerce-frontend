@@ -18,7 +18,7 @@ function Catalogo() {
   const API_URL = import.meta.env.VITE_API_URL;
   // ✅ Cargar categorías
   useEffect(() => {
-    fetch("${API_URL}/categorias")
+    fetch(`${API_URL}/categorias`)
       .then((res) => res.json())
       .then((data) => setCategorias(data))
       .catch(() => setError("Error al cargar categorías"));
