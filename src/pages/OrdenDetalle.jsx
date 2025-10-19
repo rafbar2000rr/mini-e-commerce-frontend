@@ -1,21 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-//-----------------------------
-// Detalle de la orden del usuario
-//-----------------------------
 export default function OrdenDetalle() {
   const { id } = useParams();
   const [orden, setOrden] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     (async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          setError('No estás autenticado');
+          setError('No estás autenticada');
           setLoading(false);
           return;
         }
@@ -46,7 +44,7 @@ export default function OrdenDetalle() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('No estás autenticado');
+        alert('No estás autenticada');
         return;
       }
 
@@ -98,20 +96,26 @@ export default function OrdenDetalle() {
         <h3 className="font-semibold text-gray-700 mb-3">Productos:</h3>
         <div className="space-y-4 mb-6">
           {orden.productos?.map((p, i) => (
-            <div key={i} className="flex items-center gap-4 border-b pb-3">
-              <img
-                src={p.imagen ? `${API_URL}/uploads/${p.imagen}` : 'https://via.placeholder.com/80'}
-                alt={p.nombre}
-                className="w-20 h-20 object-cover rounded"
-              />
-              <div>
-                <p className="font-medium text-gray-800">{p.nombre}</p>
-                <p className="text-gray-600">
-                  {p.precio?.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} x {p.cantidad ?? 1}
-                </p>
-              </div>
-            </div>
-          ))}
+  <div key={i} className="flex items-center gap-4 border-b pb-3">
+    <img
+      src={p.productoId?.imagen
+        ? `${API_URL}/uploads/${p.productoId.imagen}`
+        : 'https://via.placeholder.com/80'}
+      alt={p.productoId?.nombre}
+      className="w-20 h-20 object-cover rounded"
+    />
+    <div>
+      <p className="font-medium text-gray-800">{p.productoId?.nombre}</p>
+      <p className="text-gray-600">
+        {(p.productoId?.precio ?? p.precio)?.toLocaleString('en-US', {
+          style: 'currency',
+          currency: 'USD',
+        })} x {p.cantidad ?? 1}
+      </p>
+    </div>
+  </div>
+))}
+
         </div>
 
         {/* Botón descargar PDF */}
