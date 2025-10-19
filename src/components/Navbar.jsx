@@ -33,7 +33,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-blue-600 text-white shadow-md">
+    <header className="sticky top-0 z-50 bg-purple-600 text-white shadow-md">
       <nav className="flex justify-between items-center max-w-6xl mx-auto px-6 py-3">
         {/* Logo → inicio */}
         <div className="navbar-left">
@@ -78,7 +78,7 @@ export default function Navbar() {
           <Link to="/carrito" className="relative">
             <FaShoppingCart size={20} className="hover:text-yellow-300 transition-colors" />
             {carrito.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-yellow-400 text-blue-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-yellow-400 text-purple-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                 {carrito.length}
               </span>
             )}
