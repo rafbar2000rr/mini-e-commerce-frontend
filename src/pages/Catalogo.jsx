@@ -64,7 +64,7 @@ function Catalogo() {
               placeholder="Escribe un nombre..."
               value={busqueda}
               onChange={(e) => { setBusqueda(e.target.value); setPage(1); }}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
             />
           </div>
 
@@ -76,7 +76,7 @@ function Catalogo() {
               id="categoria"
               value={categoriaSeleccionada}
               onChange={(e) => { setCategoriaSeleccionada(e.target.value); setPage(1); }}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
             >
               <option value="">Todas</option>
               {categorias.map((cat) => (
@@ -125,7 +125,7 @@ function Catalogo() {
 
                       {/* Precio + Botón */}
                       <div className="flex items-center justify-between mt-2">
-                        <p className="text-blue-600 font-semibold text-base">
+                        <p className="text-purple-600 font-semibold text-base">
                           ${producto.precio.toFixed(2)}
                         </p>
                         <button
@@ -134,7 +134,7 @@ function Catalogo() {
                           className={`px-3 py-2 text-sm rounded-xl font-medium transition-colors duration-200 ${
                             producto.stock === 0
                               ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                              : "bg-blue-600 text-white hover:bg-blue-700"
+                              : "bg-purple-600 text-white hover:bg-purple-700"
                           }`}
                         >
                           {producto.stock === 0 ? "Agotado" : "Agregar al carrito"}
@@ -157,7 +157,7 @@ function Catalogo() {
                   disabled={page === 1}
                   onClick={() => setPage(page - 1)}
                   className={`p-2 rounded-full ${
-                    page === 1 ? "text-gray-400 cursor-not-allowed" : "text-blue-600 hover:bg-blue-100"
+                    page === 1 ? "text-gray-400 cursor-not-allowed" : "text-purple-600 hover:bg-purple-100"
                   }`}
                 >
                   <FaArrowLeft />
@@ -169,7 +169,7 @@ function Catalogo() {
                     onClick={() => setPage(i + 1)}
                     className={`px-3 py-1 rounded-lg border text-sm font-medium ${
                       page === i + 1
-                        ? "bg-blue-600 text-white border-blue-600"
+                        ? "bg-purple-600 text-white border-purple-600"
                         : "border-gray-300 text-gray-700 hover:bg-gray-100"
                     }`}
                   >
@@ -181,7 +181,7 @@ function Catalogo() {
                   disabled={page === pages}
                   onClick={() => setPage(page + 1)}
                   className={`p-2 rounded-full ${
-                    page === pages ? "text-gray-400 cursor-not-allowed" : "text-blue-600 hover:bg-blue-100"
+                    page === pages ? "text-gray-400 cursor-not-allowed" : "text-purple-600 hover:bg-purple-100"
                   }`}
                 >
                   <FaArrowRight />
