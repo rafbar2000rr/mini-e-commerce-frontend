@@ -204,7 +204,7 @@ export default function Checkout() {
                 setCarrito([]);
                 localStorage.removeItem("carrito");
                 alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
-                window.location.href = "/mis-ordenes";
+                window.location.href = "/my-orders";
               } catch (err) {
                 console.error("❌ Error capturando pago:", err);
                 setError("Error al conectar con el servidor. Intenta nuevamente.");
