@@ -16,6 +16,9 @@ function Catalogo() {
   const [categorias, setCategorias] = useState([]); 
   const [busqueda, setBusqueda] = useState(""); 
 
+  // 🔹 Mensaje simple de producto agregado
+  const [mensajeCarrito, setMensajeCarrito] = useState("");
+
   const { agregarAlCarrito } = useContext(CarritoContext);
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -44,13 +47,30 @@ function Catalogo() {
       .finally(() => setLoading(false));
   }, [page, categoriaSeleccionada, busqueda]);
 
+  // 🔹 Función para agregar al carrito con mensaje
+  const handleAgregarAlCarrito = (producto) => {
+    agregarAlCarrito(producto);        // ✅ agrega al carrito
+    setMensajeCarrito(`${producto.nombre} agregado al carrito!`);
+
+    // 🔹 Ocultar el mensaje después de 3 segundos
+    setTimeout(() => {
+      setMensajeCarrito("");
+    }, 3000);
+  };
+
   return (
-    // 🔹 Fondo gris suave para todo el catálogo
     <div className="bg-gray-100 min-h-screen py-10 px-6">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center">
           Catálogo de Productos
         </h2>
+
+        {/* 🔹 Mensaje simple cuando se agrega un producto */}
+        {mensajeCarrito && (
+          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            {mensajeCarrito}
+          </div>
+        )}
 
         {/* 🔍 Búsqueda */}
         <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
@@ -95,12 +115,10 @@ function Catalogo() {
             <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {productos.length > 0 ? (
                 productos.map((producto) => (
-                  // 🔹 Tarjeta producto con fondo blanco y hover elegante
                   <div
                     key={producto._id}
                     className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-1 transform transition-all duration-300"
                   >
-                    {/* Imagen */}
                     <Link to={`/producto/${producto._id}`} className="block overflow-hidden">
                       <img
                         src={`${API_URL}/uploads/${producto.imagen}`}
@@ -110,26 +128,22 @@ function Catalogo() {
                     </Link>
 
                     <div className="mt-3 flex flex-col gap-2">
-                      {/* Nombre */}
                       <h3 className="text-lg font-medium text-gray-900 truncate">
                         {producto.nombre}
                       </h3>
-                      {/* Descripción */}
                       <p className="text-gray-600 text-sm line-clamp-2">
                         {producto.descripcion}
                       </p>
-                      {/* Stock */}
                       <p className={`text-sm font-medium ${producto.stock === 0 ? "text-red-500" : "text-green-600"}`}>
                         {producto.stock > 0 ? `Stock disponible: ${producto.stock}` : "Producto agotado"}
                       </p>
 
-                      {/* Precio + Botón */}
                       <div className="flex items-center justify-between mt-2">
                         <p className="text-purple-600 font-semibold text-base">
                           ${producto.precio.toFixed(2)}
                         </p>
                         <button
-                          onClick={() => agregarAlCarrito(producto)}
+                          onClick={() => handleAgregarAlCarrito(producto)}
                           disabled={producto.stock === 0}
                           className={`px-3 py-2 text-sm rounded-xl font-medium transition-colors duration-200 ${
                             producto.stock === 0
