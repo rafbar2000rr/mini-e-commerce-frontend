@@ -14,7 +14,7 @@ export default function PanelProductos() {
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const res = await axios.get("${API_URL}/categorias");
+        const res = await axios.get(`${API_URL}/categorias`);
         setCategorias(res.data);
       } catch (error) {
         console.error("❌ Error al cargar categorías:", error.message);
@@ -29,7 +29,7 @@ export default function PanelProductos() {
     if (!nuevaCategoria.trim()) return;
 
     try {
-      const res = await axios.post("${API_URL}/categorias", { nombre: nuevaCategoria });
+      const res = await axios.post(`${API_URL}/categorias`, { nombre: nuevaCategoria });
       setCategorias([...categorias, res.data]); // ✅ agregamos directo al estado
       setNuevaCategoria("");
     } catch (error) {
