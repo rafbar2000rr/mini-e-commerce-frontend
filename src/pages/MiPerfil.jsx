@@ -12,7 +12,8 @@ export default function MiPerfil() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_URL; // ej: https://mini-e-commerce-backend-production.up.railway.app/auth
+  const API_URL = import.meta.env.VITE_API_URL || "/api";
+ // ej: https://mini-e-commerce-backend-production.up.railway.app/auth
   const token = localStorage.getItem("token");
 
   // 🔹 Traer datos del usuario
