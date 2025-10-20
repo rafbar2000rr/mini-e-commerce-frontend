@@ -121,6 +121,7 @@ export default function Checkout() {
                 name="nombre"
                 placeholder="Nombre"
                 value={cliente.nombre}
+                onChange={handleChange}
                 className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
               />
               <input
@@ -128,6 +129,7 @@ export default function Checkout() {
                 name="email"
                 placeholder="Email"
                 value={cliente.email}
+                onChange={handleChange}
                 className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
               />
               <input
