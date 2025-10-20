@@ -115,37 +115,49 @@ useEffect(() => {
           <p className="text-gray-600 text-center">Cargando productos...</p>
         ) : (
           <>
-            <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
   {productos.length > 0 ? (
     productos.map((producto) => (
       <div
         key={producto._id}
-        className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transform transition-all duration-300"
+        className="bg-white border border-gray-200 rounded-2xl shadow-sm transform transition-all duration-300 hover:shadow-lg hover:-translate-y-2 hover:scale-[1.02] flex flex-col h-full overflow-hidden"
       >
-        {/* Contenedor de imagen fijo */}
-        <div className="w-full h-56 overflow-hidden rounded-t-2xl">
-          <Link to={`/producto/${producto._id}`} className="block w-full h-full">
-            <img
-              src={`${API_URL}/uploads/${producto.imagen}`}
-              alt={producto.nombre}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-            />
-          </Link>
-        </div>
+        {/* Contenedor de imagen con altura fija */}
+        <Link
+          to={`/producto/${producto._id}`}
+          className="block w-full h-56 overflow-hidden rounded-t-2xl"
+        >
+          <img
+            src={`${API_URL}/uploads/${producto.imagen}`}
+            alt={producto.nombre}
+            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          />
+        </Link>
 
-        {/* Info del producto */}
-        <div className="p-4 flex flex-col gap-2">
-          <h3 className="text-lg font-medium text-gray-900 truncate">
+        {/* Contenido de la card */}
+        <div className="p-4 flex flex-col flex-1">
+          <h3
+            className="text-lg font-medium text-gray-900 truncate mb-1"
+            title={producto.nombre}
+          >
             {producto.nombre}
           </h3>
-          <p className="text-gray-600 text-sm line-clamp-2">
+
+          <p className="text-gray-600 text-sm mb-2 line-clamp-4 transition-all duration-300 group-hover:line-clamp-none">
             {producto.descripcion}
           </p>
-          <p className={`text-sm font-medium ${producto.stock === 0 ? "text-red-500" : "text-green-600"}`}>
-            {producto.stock > 0 ? `Stock disponible: ${producto.stock}` : "Producto agotado"}
+
+          <p
+            className={`text-sm font-medium ${
+              producto.stock === 0 ? "text-red-500" : "text-green-600"
+            } mb-2`}
+          >
+            {producto.stock > 0
+              ? `Stock disponible: ${producto.stock}`
+              : "Producto agotado"}
           </p>
 
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-auto">
             <p className="text-purple-600 font-semibold text-base">
               ${producto.precio.toFixed(2)}
             </p>
