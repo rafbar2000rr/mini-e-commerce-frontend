@@ -15,8 +15,7 @@ export default function Checkout() {
   const [loadingUsuario, setLoadingUsuario] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ Tu API URL pública en Railway
-  const API_URL = import.meta.env.VITE_API_URL; // ej: https://mini-e-commerce-backend-production.up.railway.app/api
+  const API_URL = import.meta.env.VITE_API_URL;
 
   // 🔹 Autocompletar usuario logueado
   useEffect(() => {
@@ -41,7 +40,6 @@ export default function Checkout() {
         }
 
         if (!res.ok) {
-          console.warn("⚠️ No se pudo obtener el usuario.");
           setError("No se pudo cargar tu información 💕");
           return;
         }
@@ -68,9 +66,12 @@ export default function Checkout() {
   };
 
   const total = carrito.reduce(
-    (acc, producto) => acc + (producto.precio || 0) * (producto.cantidad || 1),
+    (acc, p) => acc + (p.precio || 0) * (p.cantidad || 1),
     0
   );
+
+  const isClienteValido =
+    cliente.nombre && cliente.email && cliente.direccion && cliente.ciudad;
 
   return (
     <PayPalScriptProvider
@@ -91,7 +92,9 @@ export default function Checkout() {
             <ul className="space-y-2 mb-4">
               {carrito.map((p) => (
                 <li key={p._id || p.id} className="flex justify-between">
-                  <span>{p.nombre} x {p.cantidad}</span>
+                  <span>
+                    {p.nombre} x {p.cantidad}
+                  </span>
                   <span>${((p.precio || 0) * (p.cantidad || 1)).toFixed(2)}</span>
                 </li>
               ))}
@@ -163,6 +166,11 @@ export default function Checkout() {
           <PayPalButtons
             style={{ layout: "vertical" }}
             createOrder={async () => {
+              if (!isClienteValido) {
+                setError("Por favor completa todos los campos obligatorios 💕");
+                return;
+              }
+              setError(""); // Limpiar error previo
               const productos = carrito.map((p) => ({
                 productoId: p._id || p.id,
                 cantidad: p.cantidad || 1,
@@ -181,18 +189,22 @@ export default function Checkout() {
                 productoId: p._id || p.id,
                 cantidad: p.cantidad || 1,
               }));
-              const res = await fetch(`${API_URL}/paypal/api/capture-order/${data.orderID}`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ productos, datosCliente: cliente }),
-              });
+              const res = await fetch(
+                `${API_URL}/paypal/api/capture-order/${data.orderID}`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ productos, datosCliente: cliente }),
+                }
+              );
               const capture = await res.json();
 
               if (!res.ok) {
-                const mensaje = capture?.detalle || capture?.error || "Error al procesar la compra";
+                const mensaje =
+                  capture?.detalle || capture?.error || "Error al procesar la compra";
                 setError(mensaje);
                 alert("❌ " + mensaje);
                 return;
