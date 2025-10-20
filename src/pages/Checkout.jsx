@@ -28,7 +28,7 @@ export default function Checkout() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/auth/me`, {
+        const res = await fetch(`${API_URL}/api/me`, { // ✅ ruta corregida
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -45,9 +45,6 @@ export default function Checkout() {
             ...prev,
             nombre: data.nombre || "",
             email: data.email || "",
-            direccion: data.direccion || "",
-            ciudad: data.ciudad || "",
-            codigoPostal: data.codigoPostal || "",
           }));
         } else {
           console.warn("⚠️ No se pudo obtener el usuario.");
@@ -63,28 +60,8 @@ export default function Checkout() {
     fetchUsuario();
   }, [API_URL]);
 
-  // 🔹 Actualizar datos de usuario en tiempo real
-  const handleChange = async (e) => {
-    const { name, value } = e.target;
-    setCliente((prev) => ({ ...prev, [name]: value }));
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await fetch(`${API_URL}/auth/update-me`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ [name]: value }),
-      });
-
-      if (!res.ok) console.warn("⚠️ No se pudo actualizar el usuario");
-    } catch (err) {
-      console.error("❌ Error actualizando usuario:", err);
-    }
+  const handleChange = (e) => {
+    setCliente({ ...cliente, [e.target.name]: e.target.value });
   };
 
   const total = carrito.reduce(
@@ -141,16 +118,16 @@ export default function Checkout() {
                 name="nombre"
                 placeholder="Nombre"
                 value={cliente.nombre}
-                onChange={handleChange}
-                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                readOnly
+                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
               />
               <input
                 type="email"
                 name="email"
                 placeholder="Email"
                 value={cliente.email}
-                onChange={handleChange}
-                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                readOnly
+                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
               />
               <input
                 type="text"
