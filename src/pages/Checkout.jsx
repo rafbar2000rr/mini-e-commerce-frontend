@@ -6,18 +6,19 @@ export default function Checkout() {
   const { carrito, setCarrito } = useContext(CarritoContext);
 
   const [cliente, setCliente] = useState({
+    nombre: "",
+    email: "",
     direccion: "",
     ciudad: "",
     codigoPostal: "",
   });
 
-  const [usuario, setUsuario] = useState({ nombre: "Cargando...", email: "Cargando..." });
   const [loadingUsuario, setLoadingUsuario] = useState(true);
   const [error, setError] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔹 Autocompletar usuario logueado con fallback
+  // 🔹 Autocompletar usuario logueado
   useEffect(() => {
     const fetchUsuario = async () => {
       try {
@@ -41,18 +42,16 @@ export default function Checkout() {
 
         if (res.ok) {
           const data = await res.json();
-          // 🔹 Fallback si las propiedades cambian
-          setUsuario({
-            nombre: data.nombre || data.nombreCompleto || "Usuario",
-            email: data.email || data.correo || "email@dominio.com",
-          });
+          setCliente((prev) => ({
+            ...prev,
+            nombre: data.nombre || data.nombreCompleto || "",
+            email: data.email || data.correo || "",
+          }));
         } else {
           console.warn("⚠️ No se pudo obtener el usuario.");
-          setUsuario({ nombre: "Usuario", email: "email@dominio.com" });
         }
       } catch (err) {
         console.error("❌ Error obteniendo usuario:", err);
-        setUsuario({ nombre: "Usuario", email: "email@dominio.com" });
       } finally {
         setLoadingUsuario(false);
       }
@@ -110,18 +109,22 @@ export default function Checkout() {
 
           {error && <p className="text-red-500">{error}</p>}
 
-          {/* 🔹 Inputs de usuario con fallback mientras carga */}
+          {/* 🔹 Nombre y email editables */}
           <input
             type="text"
-            value={loadingUsuario ? "Cargando..." : usuario.nombre}
-            readOnly
-            className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+            name="nombre"
+            placeholder="Nombre"
+            value={cliente.nombre}
+            onChange={handleChange}
+            className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
           />
           <input
             type="email"
-            value={loadingUsuario ? "Cargando..." : usuario.email}
-            readOnly
-            className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+            name="email"
+            placeholder="Email"
+            value={cliente.email}
+            onChange={handleChange}
+            className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
           />
 
           <input
@@ -164,7 +167,7 @@ export default function Checkout() {
                 body: JSON.stringify({
                   total,
                   productos,
-                  datosCliente: { ...usuario, ...cliente },
+                  datosCliente: cliente,
                 }),
               });
               const data = await res.json();
@@ -185,7 +188,7 @@ export default function Checkout() {
                 },
                 body: JSON.stringify({
                   productos,
-                  datosCliente: { ...usuario, ...cliente },
+                  datosCliente: cliente,
                 }),
               });
 
