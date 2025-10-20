@@ -31,21 +31,24 @@ function Catalogo() {
   }, []);
 
   // 🔹 Cargar productos
-  useEffect(() => {
-    setLoading(true);
-    setError("");
+  // 🔹 Cargar productos
+useEffect(() => {
+  setLoading(true);
+  setError("");
 
-    fetch(
-      `${API_URL}/productos?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setProductos(Array.isArray(data.productos) ? data.productos : []);
-        setPages(typeof data.pages === "number" && data.pages > 0 ? data.pages : 1);
-      })
-      .catch(() => setError("Error al cargar productos"))
-      .finally(() => setLoading(false));
-  }, [page, categoriaSeleccionada, busqueda]);
+  // ✅ Cambiamos la ruta a /catalogo (pública) en vez de /productos
+  fetch(
+    `${API_URL}/catalogo?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      setProductos(Array.isArray(data.productos) ? data.productos : []);
+      setPages(typeof data.pages === "number" && data.pages > 0 ? data.pages : 1);
+    })
+    .catch(() => setError("Error al cargar productos"))
+    .finally(() => setLoading(false));
+}, [page, categoriaSeleccionada, busqueda]);
+
 
   // 🔹 Función para agregar al carrito con mensaje
   const handleAgregarAlCarrito = (producto) => {
@@ -121,10 +124,11 @@ function Catalogo() {
                   >
                     <Link to={`/producto/${producto._id}`} className="block overflow-hidden">
                       <img
-                        src={`${API_URL}/uploads/${producto.imagen}`}
-                        alt={producto.nombre}
-                        className="w-full h-56 object-cover transition-transform duration-500 hover:scale-105"
+                          src={`${API_URL}/catalogo/uploads/${producto.imagen}`} // 🔹 nueva ruta pública
+                          alt={producto.nombre}
+                          className="w-full h-56 object-cover transition-transform duration-500 hover:scale-105"
                       />
+
                     </Link>
 
                     <div className="mt-3 flex flex-col gap-2">
