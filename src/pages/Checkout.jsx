@@ -11,13 +11,13 @@ export default function Checkout() {
     codigoPostal: "",
   });
 
-  const [usuario, setUsuario] = useState({ nombre: "", email: "" });
+  const [usuario, setUsuario] = useState({ nombre: "Cargando...", email: "Cargando..." });
+  const [loadingUsuario, setLoadingUsuario] = useState(true);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔹 Autocompletar usuario logueado
+  // 🔹 Autocompletar usuario logueado con fallback
   useEffect(() => {
     const fetchUsuario = async () => {
       try {
@@ -41,16 +41,20 @@ export default function Checkout() {
 
         if (res.ok) {
           const data = await res.json();
+          // 🔹 Fallback si las propiedades cambian
           setUsuario({
-            nombre: data.nombre || "",
-            email: data.email || "",
+            nombre: data.nombre || data.nombreCompleto || "Usuario",
+            email: data.email || data.correo || "email@dominio.com",
           });
         } else {
           console.warn("⚠️ No se pudo obtener el usuario.");
+          setUsuario({ nombre: "Usuario", email: "email@dominio.com" });
         }
       } catch (err) {
         console.error("❌ Error obteniendo usuario:", err);
-        alert("Hubo un error al verificar tu sesión. Intenta más tarde 💕");
+        setUsuario({ nombre: "Usuario", email: "email@dominio.com" });
+      } finally {
+        setLoadingUsuario(false);
       }
     };
 
@@ -81,7 +85,7 @@ export default function Checkout() {
           <h2 className="text-xl font-semibold text-pink-500 mb-4">
             Resumen del carrito
           </h2>
-          {Array.isArray(carrito) && carrito.length > 0 ? (
+          {carrito.length > 0 ? (
             <ul className="space-y-2 mb-4">
               {carrito.map((producto) => (
                 <li key={producto._id || producto.id} className="flex justify-between">
@@ -106,18 +110,20 @@ export default function Checkout() {
 
           {error && <p className="text-red-500">{error}</p>}
 
+          {/* 🔹 Inputs de usuario con fallback mientras carga */}
           <input
             type="text"
-            value={usuario.nombre || ""}
+            value={loadingUsuario ? "Cargando..." : usuario.nombre}
             readOnly
             className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
           />
           <input
             type="email"
-            value={usuario.email || ""}
+            value={loadingUsuario ? "Cargando..." : usuario.email}
             readOnly
             className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
           />
+
           <input
             type="text"
             name="direccion"
@@ -147,68 +153,55 @@ export default function Checkout() {
           <PayPalButtons
             style={{ layout: "vertical" }}
             createOrder={async () => {
-              try {
-                const productos = carrito.map((p) => ({
-                  productoId: p._id || p.id,
-                  cantidad: p.cantidad || 1,
-                }));
-                const res = await fetch(`${API_URL}/paypal/api/create-order`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    total,
-                    productos,
-                    datosCliente: { ...usuario, ...cliente },
-                  }),
-                });
-                const data = await res.json();
-                return data?.id; // ✅ Fallback si data.id no existe
-              } catch (err) {
-                console.error("❌ Error creando orden:", err);
-                setError("No se pudo crear la orden. Intenta más tarde 💕");
-              }
+              const productos = carrito.map((p) => ({
+                productoId: p._id || p.id,
+                cantidad: p.cantidad || 1,
+              }));
+
+              const res = await fetch(`${API_URL}/paypal/api/create-order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  total,
+                  productos,
+                  datosCliente: { ...usuario, ...cliente },
+                }),
+              });
+              const data = await res.json();
+              return data?.id;
             }}
             onApprove={async (data) => {
-              try {
-                const token = localStorage.getItem("token");
-                const productos = carrito.map((p) => ({
-                  productoId: p._id || p.id,
-                  cantidad: p.cantidad || 1,
-                }));
+              const token = localStorage.getItem("token");
+              const productos = carrito.map((p) => ({
+                productoId: p._id || p.id,
+                cantidad: p.cantidad || 1,
+              }));
 
-                const res = await fetch(
-                  `${API_URL}/paypal/api/capture-order/${data.orderID}`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                      productos,
-                      datosCliente: { ...usuario, ...cliente },
-                    }),
-                  }
-                );
+              const res = await fetch(`${API_URL}/paypal/api/capture-order/${data.orderID}`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  productos,
+                  datosCliente: { ...usuario, ...cliente },
+                }),
+              });
 
-                const capture = await res.json();
+              const capture = await res.json();
 
-                if (!res.ok) {
-                  const mensaje =
-                    capture?.detalle || capture?.error || "Error al procesar la compra";
-                  setError(mensaje);
-                  alert("❌ " + mensaje);
-                  return;
-                }
-
-                setCarrito([]);
-                localStorage.removeItem("carrito");
-                alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
-                window.location.href = "/mis-ordenes";
-              } catch (err) {
-                console.error("❌ Error capturando pago:", err);
-                setError("Error al conectar con el servidor. Intenta nuevamente.");
+              if (!res.ok) {
+                const mensaje = capture?.detalle || capture?.error || "Error al procesar la compra";
+                setError(mensaje);
+                alert("❌ " + mensaje);
+                return;
               }
+
+              setCarrito([]);
+              localStorage.removeItem("carrito");
+              alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
+              window.location.href = "/mis-ordenes";
             }}
           />
         </div>
