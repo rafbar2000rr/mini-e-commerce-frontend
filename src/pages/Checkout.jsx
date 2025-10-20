@@ -6,14 +6,14 @@ export default function Checkout() {
   const { carrito, setCarrito } = useContext(CarritoContext);
 
   const [cliente, setCliente] = useState({
-    nombre: "",
-    email: "",
     direccion: "",
     ciudad: "",
     codigoPostal: "",
   });
-  const [loadingUsuario, setLoadingUsuario] = useState(true);
+
+  const [usuario, setUsuario] = useState({ nombre: "", email: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -28,7 +28,7 @@ export default function Checkout() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/api/me`, { // ✅ ruta corregida
+        const res = await fetch(`${API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -41,19 +41,16 @@ export default function Checkout() {
 
         if (res.ok) {
           const data = await res.json();
-          setCliente((prev) => ({
-            ...prev,
+          setUsuario({
             nombre: data.nombre || "",
             email: data.email || "",
-          }));
+          });
         } else {
           console.warn("⚠️ No se pudo obtener el usuario.");
         }
       } catch (err) {
         console.error("❌ Error obteniendo usuario:", err);
         alert("Hubo un error al verificar tu sesión. Intenta más tarde 💕");
-      } finally {
-        setLoadingUsuario(false);
       }
     };
 
@@ -109,52 +106,42 @@ export default function Checkout() {
 
           {error && <p className="text-red-500">{error}</p>}
 
-          {loadingUsuario ? (
-            <p className="text-gray-500">Cargando tus datos...</p>
-          ) : (
-            <>
-              <input
-                type="text"
-                name="nombre"
-                placeholder="Nombre"
-                value={cliente.nombre}
-                readOnly
-                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={cliente.email}
-                readOnly
-                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
-              />
-              <input
-                type="text"
-                name="direccion"
-                placeholder="Dirección"
-                value={cliente.direccion}
-                onChange={handleChange}
-                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-              />
-              <input
-                type="text"
-                name="ciudad"
-                placeholder="Ciudad"
-                value={cliente.ciudad}
-                onChange={handleChange}
-                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-              />
-              <input
-                type="text"
-                name="codigoPostal"
-                placeholder="Código postal"
-                value={cliente.codigoPostal}
-                onChange={handleChange}
-                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-              />
-            </>
-          )}
+          <input
+            type="text"
+            value={usuario.nombre || ""}
+            readOnly
+            className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+          />
+          <input
+            type="email"
+            value={usuario.email || ""}
+            readOnly
+            className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+          />
+          <input
+            type="text"
+            name="direccion"
+            placeholder="Dirección"
+            value={cliente.direccion}
+            onChange={handleChange}
+            className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+          />
+          <input
+            type="text"
+            name="ciudad"
+            placeholder="Ciudad"
+            value={cliente.ciudad}
+            onChange={handleChange}
+            className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+          />
+          <input
+            type="text"
+            name="codigoPostal"
+            placeholder="Código postal"
+            value={cliente.codigoPostal}
+            onChange={handleChange}
+            className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+          />
 
           {/* Botón de PayPal */}
           <PayPalButtons
@@ -171,11 +158,11 @@ export default function Checkout() {
                   body: JSON.stringify({
                     total,
                     productos,
-                    datosCliente: cliente,
+                    datosCliente: { ...usuario, ...cliente },
                   }),
                 });
                 const data = await res.json();
-                return data?.id;
+                return data?.id; // ✅ Fallback si data.id no existe
               } catch (err) {
                 console.error("❌ Error creando orden:", err);
                 setError("No se pudo crear la orden. Intenta más tarde 💕");
@@ -199,7 +186,7 @@ export default function Checkout() {
                     },
                     body: JSON.stringify({
                       productos,
-                      datosCliente: cliente,
+                      datosCliente: { ...usuario, ...cliente },
                     }),
                   }
                 );
