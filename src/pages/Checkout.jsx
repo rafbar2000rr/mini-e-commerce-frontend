@@ -15,20 +15,21 @@ export default function Checkout() {
   const [loadingUsuario, setLoadingUsuario] = useState(true);
   const [error, setError] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  // ✅ Tu API URL pública en Railway
+  const API_URL = import.meta.env.VITE_API_URL; // ej: https://mini-e-commerce-backend-production.up.railway.app/api
 
   // 🔹 Autocompletar usuario logueado
   useEffect(() => {
     const fetchUsuario = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          alert("Por favor inicia sesión antes de hacer una compra 💖");
-          window.location.href = "/login";
-          return;
-        }
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Por favor inicia sesión antes de hacer una compra 💖");
+        window.location.href = "/login";
+        return;
+      }
 
-        const res = await fetch(`${API_URL}/auth/me`, {
+      try {
+        const res = await fetch(`${API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -39,19 +40,21 @@ export default function Checkout() {
           return;
         }
 
-        if (res.ok) {
-          const data = await res.json();
-          setCliente((prev) => ({
-            ...prev,
-            nombre: data.nombre || "",
-            email: data.email || "",
-          }));
-        } else {
+        if (!res.ok) {
           console.warn("⚠️ No se pudo obtener el usuario.");
+          setError("No se pudo cargar tu información 💕");
+          return;
         }
+
+        const data = await res.json();
+        setCliente((prev) => ({
+          ...prev,
+          nombre: data.nombre || "",
+          email: data.email || "",
+        }));
       } catch (err) {
         console.error("❌ Error obteniendo usuario:", err);
-        alert("Hubo un error al verificar tu sesión. Intenta más tarde 💕");
+        setError("Error conectando con el servidor 💕");
       } finally {
         setLoadingUsuario(false);
       }
@@ -84,12 +87,12 @@ export default function Checkout() {
           <h2 className="text-xl font-semibold text-pink-500 mb-4">
             Resumen del carrito
           </h2>
-          {Array.isArray(carrito) && carrito.length > 0 ? (
+          {carrito.length > 0 ? (
             <ul className="space-y-2 mb-4">
-              {carrito.map((producto) => (
-                <li key={producto._id || producto.id} className="flex justify-between">
-                  <span>{producto.nombre} x {producto.cantidad}</span>
-                  <span>${((producto.precio || 0) * (producto.cantidad || 1)).toFixed(2)}</span>
+              {carrito.map((p) => (
+                <li key={p._id || p.id} className="flex justify-between">
+                  <span>{p.nombre} x {p.cantidad}</span>
+                  <span>${((p.precio || 0) * (p.cantidad || 1)).toFixed(2)}</span>
                 </li>
               ))}
             </ul>
@@ -101,7 +104,7 @@ export default function Checkout() {
           </h3>
         </div>
 
-        {/* Datos de envío + PayPal */}
+        {/* Datos de envío */}
         <div className="w-full max-w-md bg-white rounded-xl shadow-md p-6 space-y-4">
           <h2 className="text-xl font-semibold text-pink-500 mb-4">
             Datos de envío
@@ -113,22 +116,19 @@ export default function Checkout() {
             <p className="text-gray-500">Cargando tus datos...</p>
           ) : (
             <>
-              {/* Inputs editables */}
               <input
                 type="text"
                 name="nombre"
                 placeholder="Nombre"
                 value={cliente.nombre}
-                onChange={handleChange} // ✅ Editable
-                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
               />
               <input
                 type="email"
                 name="email"
                 placeholder="Email"
                 value={cliente.email}
-                onChange={handleChange} // ✅ Editable
-                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
               />
               <input
                 type="text"
@@ -157,72 +157,49 @@ export default function Checkout() {
             </>
           )}
 
-          {/* Botón de PayPal */}
+          {/* Botón PayPal */}
           <PayPalButtons
             style={{ layout: "vertical" }}
             createOrder={async () => {
-              try {
-                const productos = carrito.map((p) => ({
-                  productoId: p._id || p.id,
-                  cantidad: p.cantidad || 1,
-                }));
-                const res = await fetch(`${API_URL}/paypal/api/create-order`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    total,
-                    productos,
-                    datosCliente: cliente,
-                  }),
-                });
-                const data = await res.json();
-                return data?.id;
-              } catch (err) {
-                console.error("❌ Error creando orden:", err);
-                setError("No se pudo crear la orden. Intenta más tarde 💕");
-              }
+              const productos = carrito.map((p) => ({
+                productoId: p._id || p.id,
+                cantidad: p.cantidad || 1,
+              }));
+              const res = await fetch(`${API_URL}/paypal/api/create-order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ total, productos, datosCliente: cliente }),
+              });
+              const data = await res.json();
+              return data?.id;
             }}
             onApprove={async (data) => {
-              try {
-                const token = localStorage.getItem("token");
-                const productos = carrito.map((p) => ({
-                  productoId: p._id || p.id,
-                  cantidad: p.cantidad || 1,
-                }));
+              const token = localStorage.getItem("token");
+              const productos = carrito.map((p) => ({
+                productoId: p._id || p.id,
+                cantidad: p.cantidad || 1,
+              }));
+              const res = await fetch(`${API_URL}/paypal/api/capture-order/${data.orderID}`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ productos, datosCliente: cliente }),
+              });
+              const capture = await res.json();
 
-                const res = await fetch(
-                  `${API_URL}/paypal/api/capture-order/${data.orderID}`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                      productos,
-                      datosCliente: cliente,
-                    }),
-                  }
-                );
-
-                const capture = await res.json();
-
-                if (!res.ok) {
-                  const mensaje =
-                    capture?.detalle || capture?.error || "Error al procesar la compra";
-                  setError(mensaje);
-                  alert("❌ " + mensaje);
-                  return;
-                }
-
-                setCarrito([]);
-                localStorage.removeItem("carrito");
-                alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
-                window.location.href = "/mis-ordenes";
-              } catch (err) {
-                console.error("❌ Error capturando pago:", err);
-                setError("Error al conectar con el servidor. Intenta nuevamente.");
+              if (!res.ok) {
+                const mensaje = capture?.detalle || capture?.error || "Error al procesar la compra";
+                setError(mensaje);
+                alert("❌ " + mensaje);
+                return;
               }
+
+              setCarrito([]);
+              localStorage.removeItem("carrito");
+              alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
+              window.location.href = "/mis-ordenes";
             }}
           />
         </div>
