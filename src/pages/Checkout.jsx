@@ -28,7 +28,8 @@ export default function Checkout() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/api/me`, { // ruta corregida
+        // ✅ Ruta corregida
+        const res = await fetch(`${API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -87,9 +88,19 @@ export default function Checkout() {
           {Array.isArray(carrito) && carrito.length > 0 ? (
             <ul className="space-y-2 mb-4">
               {carrito.map((producto) => (
-                <li key={producto._id || producto.id} className="flex justify-between">
-                  <span>{producto.nombre} x {producto.cantidad}</span>
-                  <span>${((producto.precio || 0) * (producto.cantidad || 1)).toFixed(2)}</span>
+                <li
+                  key={producto._id || producto.id}
+                  className="flex justify-between"
+                >
+                  <span>
+                    {producto.nombre} x {producto.cantidad}
+                  </span>
+                  <span>
+                    $
+                    {((producto.precio || 0) * (producto.cantidad || 1)).toFixed(
+                      2
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -216,7 +227,9 @@ export default function Checkout() {
 
                 setCarrito([]);
                 localStorage.removeItem("carrito");
-                alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
+                alert(
+                  "Pago completado con PayPal 💖 Tu pedido ha sido registrado."
+                );
                 window.location.href = "/mis-ordenes";
               } catch (err) {
                 console.error("❌ Error capturando pago:", err);
