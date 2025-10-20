@@ -23,7 +23,7 @@ function App() {
         <Navbar />
         <Routes>
           {/* Redirigir la raíz al catálogo */}
-          <Route path="/" element={<Navigate to="/catalogo" />} />
+          {/* <Route path="/" element={<Navigate to="/catalogo" />} /> */}
 
           {/* Página inicial accesible sin login */}
           <Route path="/catalogo" element={<Catalogo />} />
