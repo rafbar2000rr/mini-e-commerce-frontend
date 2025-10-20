@@ -116,59 +116,60 @@ useEffect(() => {
         ) : (
           <>
             <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {productos.length > 0 ? (
-                productos.map((producto) => (
-                  <div
-                    key={producto._id}
-                    className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-1 transform transition-all duration-300"
-                  >
-                    <Link to={`/producto/${producto._id}`} className="block overflow-hidden">
-                      <img
-                        src={
-                            producto.imagen
-                                 ? `${API_URL}/uploads/${producto.imagen}`
-                                  : `${API_URL}/uploads/placeholder.png`
-                            }
-                            alt={producto.nombre}
-                      />
-                    </Link>
+  {productos.length > 0 ? (
+    productos.map((producto) => (
+      <div
+        key={producto._id}
+        className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transform transition-all duration-300"
+      >
+        {/* Contenedor de imagen fijo */}
+        <div className="w-full h-56 overflow-hidden rounded-t-2xl">
+          <Link to={`/producto/${producto._id}`} className="block w-full h-full">
+            <img
+              src={`${API_URL}/uploads/${producto.imagen}`}
+              alt={producto.nombre}
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+            />
+          </Link>
+        </div>
 
-                    <div className="mt-3 flex flex-col gap-2">
-                      <h3 className="text-lg font-medium text-gray-900 truncate">
-                        {producto.nombre}
-                      </h3>
-                      <p className="text-gray-600 text-sm line-clamp-2">
-                        {producto.descripcion}
-                      </p>
-                      <p className={`text-sm font-medium ${producto.stock === 0 ? "text-red-500" : "text-green-600"}`}>
-                        {producto.stock > 0 ? `Stock disponible: ${producto.stock}` : "Producto agotado"}
-                      </p>
+        {/* Info del producto */}
+        <div className="p-4 flex flex-col gap-2">
+          <h3 className="text-lg font-medium text-gray-900 truncate">
+            {producto.nombre}
+          </h3>
+          <p className="text-gray-600 text-sm line-clamp-2">
+            {producto.descripcion}
+          </p>
+          <p className={`text-sm font-medium ${producto.stock === 0 ? "text-red-500" : "text-green-600"}`}>
+            {producto.stock > 0 ? `Stock disponible: ${producto.stock}` : "Producto agotado"}
+          </p>
 
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-purple-600 font-semibold text-base">
-                          ${producto.precio.toFixed(2)}
-                        </p>
-                        <button
-                          onClick={() => handleAgregarAlCarrito(producto)}
-                          disabled={producto.stock === 0}
-                          className={`px-3 py-2 text-sm rounded-xl font-medium transition-colors duration-200 ${
-                            producto.stock === 0
-                              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                              : "bg-purple-600 text-white hover:bg-purple-700"
-                          }`}
-                        >
-                          {producto.stock === 0 ? "Agotado" : "Agregar al carrito"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-600 text-center col-span-full">
-                  No hay productos disponibles 😢
-                </p>
-              )}
-            </div>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-purple-600 font-semibold text-base">
+              ${producto.precio.toFixed(2)}
+            </p>
+            <button
+              onClick={() => handleAgregarAlCarrito(producto)}
+              disabled={producto.stock === 0}
+              className={`px-3 py-2 text-sm rounded-xl font-medium transition-colors duration-200 ${
+                producto.stock === 0
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-purple-600 text-white hover:bg-purple-700"
+              }`}
+            >
+              {producto.stock === 0 ? "Agotado" : "Agregar al carrito"}
+            </button>
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <p className="text-gray-600 text-center col-span-full">
+      No hay productos disponibles 😢
+    </p>
+  )}
+</div>
 
             {/* 📄 Paginación */}
             {pages > 1 && (
