@@ -28,7 +28,6 @@ export default function Checkout() {
           return;
         }
 
-        // ✅ Ruta corregida
         const res = await fetch(`${API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -46,6 +45,9 @@ export default function Checkout() {
             ...prev,
             nombre: data.nombre || "",
             email: data.email || "",
+            direccion: data.direccion || "",
+            ciudad: data.ciudad || "",
+            codigoPostal: data.codigoPostal || "",
           }));
         } else {
           console.warn("⚠️ No se pudo obtener el usuario.");
@@ -61,8 +63,28 @@ export default function Checkout() {
     fetchUsuario();
   }, [API_URL]);
 
-  const handleChange = (e) => {
-    setCliente({ ...cliente, [e.target.name]: e.target.value });
+  // 🔹 Actualizar datos de usuario en tiempo real
+  const handleChange = async (e) => {
+    const { name, value } = e.target;
+    setCliente((prev) => ({ ...prev, [name]: value }));
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch(`${API_URL}/auth/update-me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ [name]: value }),
+      });
+
+      if (!res.ok) console.warn("⚠️ No se pudo actualizar el usuario");
+    } catch (err) {
+      console.error("❌ Error actualizando usuario:", err);
+    }
   };
 
   const total = carrito.reduce(
@@ -88,19 +110,9 @@ export default function Checkout() {
           {Array.isArray(carrito) && carrito.length > 0 ? (
             <ul className="space-y-2 mb-4">
               {carrito.map((producto) => (
-                <li
-                  key={producto._id || producto.id}
-                  className="flex justify-between"
-                >
-                  <span>
-                    {producto.nombre} x {producto.cantidad}
-                  </span>
-                  <span>
-                    $
-                    {((producto.precio || 0) * (producto.cantidad || 1)).toFixed(
-                      2
-                    )}
-                  </span>
+                <li key={producto._id || producto.id} className="flex justify-between">
+                  <span>{producto.nombre} x {producto.cantidad}</span>
+                  <span>${((producto.precio || 0) * (producto.cantidad || 1)).toFixed(2)}</span>
                 </li>
               ))}
             </ul>
@@ -129,16 +141,16 @@ export default function Checkout() {
                 name="nombre"
                 placeholder="Nombre"
                 value={cliente.nombre}
-                readOnly
-                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+                onChange={handleChange}
+                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
               />
               <input
                 type="email"
                 name="email"
                 placeholder="Email"
                 value={cliente.email}
-                readOnly
-                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+                onChange={handleChange}
+                className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
               />
               <input
                 type="text"
@@ -227,9 +239,7 @@ export default function Checkout() {
 
                 setCarrito([]);
                 localStorage.removeItem("carrito");
-                alert(
-                  "Pago completado con PayPal 💖 Tu pedido ha sido registrado."
-                );
+                alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
                 window.location.href = "/mis-ordenes";
               } catch (err) {
                 console.error("❌ Error capturando pago:", err);
