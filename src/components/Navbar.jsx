@@ -7,13 +7,33 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
 
+  const API_URL = import.meta.env.VITE_API_URL; 
+  // Ejemplo: "https://mini-e-commerce-backend-production.up.railway.app/api/auth"
+
   useEffect(() => {
-    const userData = localStorage.getItem("usuario");
-    if (userData) setUsuario(JSON.parse(userData));
-  }, []);
+    const fetchUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_URL}/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("No autorizado");
+        const data = await res.json();
+        setUsuario(data);
+      } catch (err) {
+        console.error("Error al obtener usuario:", err);
+        localStorage.removeItem("token");
+        setUsuario(null);
+      }
+    };
+
+    fetchUser();
+  }, [API_URL]);
 
   const handleLogout = () => {
-    localStorage.removeItem("usuario");
+    localStorage.removeItem("token");
     setUsuario(null);
     navigate("/login");
   };
@@ -40,7 +60,7 @@ export default function Navbar() {
         {usuario ? (
           <>
             <span className="text-gray-700 font-medium">
-              👋 Hola, {usuario.nombre}
+              👋 Hola, {usuario.nombre.split(" ")[0]}
             </span>
             <Link to="/mi-perfil" className="text-gray-600 hover:text-black">
               Mi perfil
