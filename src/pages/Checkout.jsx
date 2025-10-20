@@ -12,12 +12,13 @@ export default function Checkout() {
     ciudad: "",
     codigoPostal: "",
   });
+  const [perfilOriginal, setPerfilOriginal] = useState(null); // 🔹 Guardar datos originales
   const [loadingUsuario, setLoadingUsuario] = useState(true);
   const [error, setError] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔹 Autocompletar usuario logueado
+  // 🔹 Cargar datos del perfil al entrar al checkout
   useEffect(() => {
     const fetchUsuario = async () => {
       const token = localStorage.getItem("token");
@@ -32,24 +33,23 @@ export default function Checkout() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (res.status === 401) {
-          localStorage.removeItem("token");
-          alert("Tu sesión ha expirado. Por favor inicia sesión nuevamente 💖");
-          window.location.href = "/login";
-          return;
-        }
-
-        if (!res.ok) {
-          setError("No se pudo cargar tu información 💕");
-          return;
-        }
+        if (!res.ok) throw new Error("No se pudo cargar tus datos");
 
         const data = await res.json();
-        setCliente((prev) => ({
-          ...prev,
+        setCliente({
           nombre: data.nombre || "",
           email: data.email || "",
-        }));
+          direccion: data.direccion || "",
+          ciudad: data.ciudad || "",
+          codigoPostal: data.codigoPostal || "",
+        });
+        setPerfilOriginal({
+          nombre: data.nombre || "",
+          email: data.email || "",
+          direccion: data.direccion || "",
+          ciudad: data.ciudad || "",
+          codigoPostal: data.codigoPostal || "",
+        });
       } catch (err) {
         console.error("❌ Error obteniendo usuario:", err);
         setError("Error conectando con el servidor 💕");
@@ -61,17 +61,20 @@ export default function Checkout() {
     fetchUsuario();
   }, [API_URL]);
 
+  // 🔹 Actualizar campos solo localmente para esta compra
   const handleChange = (e) => {
     setCliente({ ...cliente, [e.target.name]: e.target.value });
   };
 
+  // 🔹 Recuperar datos originales
+  const usarDatosPerfil = () => {
+    if (perfilOriginal) setCliente({ ...perfilOriginal });
+  };
+
   const total = carrito.reduce(
-    (acc, p) => acc + (p.precio || 0) * (p.cantidad || 1),
+    (acc, producto) => acc + (producto.precio || 0) * (producto.cantidad || 1),
     0
   );
-
-  const isClienteValido =
-    cliente.nombre && cliente.email && cliente.direccion && cliente.ciudad;
 
   return (
     <PayPalScriptProvider
@@ -92,9 +95,7 @@ export default function Checkout() {
             <ul className="space-y-2 mb-4">
               {carrito.map((p) => (
                 <li key={p._id || p.id} className="flex justify-between">
-                  <span>
-                    {p.nombre} x {p.cantidad}
-                  </span>
+                  <span>{p.nombre} x {p.cantidad}</span>
                   <span>${((p.precio || 0) * (p.cantidad || 1)).toFixed(2)}</span>
                 </li>
               ))}
@@ -125,7 +126,7 @@ export default function Checkout() {
                 placeholder="Nombre"
                 value={cliente.nombre}
                 onChange={handleChange}
-                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+                className="w-full p-3 border border-pink-200 rounded-lg"
               />
               <input
                 type="email"
@@ -133,7 +134,7 @@ export default function Checkout() {
                 placeholder="Email"
                 value={cliente.email}
                 onChange={handleChange}
-                className="w-full p-3 border border-pink-200 bg-gray-100 rounded-lg"
+                className="w-full p-3 border border-pink-200 rounded-lg"
               />
               <input
                 type="text"
@@ -159,6 +160,19 @@ export default function Checkout() {
                 onChange={handleChange}
                 className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
               />
+
+              {/* 🔹 Botón para recuperar datos del perfil */}
+              <button
+                type="button"
+                onClick={usarDatosPerfil}
+                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+              >
+                Usar mis datos del perfil
+              </button>
+
+              <p className="text-sm text-gray-500">
+                Estos cambios aplicarán solo para esta compra. Para actualizar tu perfil, ve a <a href="/perfil" className="text-pink-600 underline">Mi Perfil</a>.
+              </p>
             </>
           )}
 
@@ -166,11 +180,6 @@ export default function Checkout() {
           <PayPalButtons
             style={{ layout: "vertical" }}
             createOrder={async () => {
-              if (!isClienteValido) {
-                setError("Por favor completa todos los campos obligatorios 💕");
-                return;
-              }
-              setError(""); // Limpiar error previo
               const productos = carrito.map((p) => ({
                 productoId: p._id || p.id,
                 cantidad: p.cantidad || 1,
@@ -189,22 +198,18 @@ export default function Checkout() {
                 productoId: p._id || p.id,
                 cantidad: p.cantidad || 1,
               }));
-              const res = await fetch(
-                `${API_URL}/paypal/api/capture-order/${data.orderID}`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: JSON.stringify({ productos, datosCliente: cliente }),
-                }
-              );
+              const res = await fetch(`${API_URL}/paypal/api/capture-order/${data.orderID}`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ productos, datosCliente: cliente }),
+              });
               const capture = await res.json();
 
               if (!res.ok) {
-                const mensaje =
-                  capture?.detalle || capture?.error || "Error al procesar la compra";
+                const mensaje = capture?.detalle || capture?.error || "Error al procesar la compra";
                 setError(mensaje);
                 alert("❌ " + mensaje);
                 return;

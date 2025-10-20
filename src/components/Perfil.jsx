@@ -1,50 +1,123 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from "react";
 
-function Perfil() {
-  const [perfil, setPerfil] = useState(null);
-  const [error, setError] = useState('');
+export default function Perfil() {
+  const [usuario, setUsuario] = useState({
+    nombre: "",
+    email: "",
+    direccion: "",
+    ciudad: "",
+    codigoPostal: "",
+  });
+  const [loading, setLoading] = useState(true);
+  const [mensaje, setMensaje] = useState("");
   const API_URL = import.meta.env.VITE_API_URL;
+
+  // 🔹 Cargar datos del usuario
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const fetchUsuario = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return; // usuario no logueado
 
-    if (!token) {
-      setError('No estás logueada');
-      return;
-    }
-
-    fetch('${API_URL}/perfil', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`
+      try {
+        const res = await fetch(`${API_URL}/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("No se pudo cargar tus datos");
+        const data = await res.json();
+        setUsuario(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setPerfil(data.user);
-        }
-      })
-      .catch(() => {
-        setError('Error al obtener perfil');
+    };
+
+    fetchUsuario();
+  }, [API_URL]);
+
+  // 🔹 Actualizar campos localmente
+  const handleChange = (e) => {
+    setUsuario({ ...usuario, [e.target.name]: e.target.value });
+  };
+
+  // 🔹 Guardar cambios en backend
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/perfil`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(usuario),
       });
-  }, []);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al actualizar");
+      setMensaje("✅ Datos actualizados correctamente!");
+    } catch (err) {
+      console.error(err);
+      setMensaje("❌ No se pudo actualizar. Intenta de nuevo.");
+    }
+  };
+
+  if (loading) return <p>Cargando tus datos...</p>;
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-4 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Mi Perfil</h2>
-
-      {error && <p className="text-red-500">{error}</p>}
-
-      {perfil && (
-        <div className="space-y-2">
-          <p><strong>ID:</strong> {perfil.id}</p>
-          <p><strong>Email:</strong> {perfil.email}</p>
-        </div>
-      )}
+    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md">
+      <h1 className="text-2xl font-bold mb-4">Mi Perfil 💖</h1>
+      {mensaje && <p className="mb-4">{mensaje}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          name="nombre"
+          placeholder="Nombre"
+          value={usuario.nombre}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={usuario.email}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+        />
+        <input
+          type="text"
+          name="direccion"
+          placeholder="Dirección"
+          value={usuario.direccion || ""}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+        />
+        <input
+          type="text"
+          name="ciudad"
+          placeholder="Ciudad"
+          value={usuario.ciudad || ""}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+        />
+        <input
+          type="text"
+          name="codigoPostal"
+          placeholder="Código postal"
+          value={usuario.codigoPostal || ""}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+        />
+        <button
+          type="submit"
+          className="w-full p-3 bg-pink-600 text-white rounded-lg font-semibold"
+        >
+          Guardar cambios
+        </button>
+      </form>
     </div>
   );
 }
-
-export default Perfil;

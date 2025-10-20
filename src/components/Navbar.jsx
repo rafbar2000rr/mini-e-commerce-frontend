@@ -1,41 +1,38 @@
-import { useContext } from 'react';
+import { useContext, useState, useRef, useEffect } from 'react';
 import { CarritoContext } from '../context/CarritoContext';
-import { FaShoppingCart } from 'react-icons/fa';
+import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
 
-//---------------------
-// Barra de navegación.
-//---------------------
 export default function Navbar() {
   const { carrito, setCarrito, setUsuario } = useContext(CarritoContext);
   const navigate = useNavigate();
-  const token = localStorage.getItem('token'); // 👈 verificamos sesión
+  const token = localStorage.getItem('token');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef();
 
-  // ✅ Cerrar sesión
   const handleLogout = () => {
-    // 🔹 1. Borras el token del localStorage
     localStorage.removeItem('token');
-    
-    // 🔹 2. Borras el usuario guardado en localStorage
     localStorage.removeItem('usuario');
-    
-    // 🔹 3. Limpias el estado en memoria (React) → usuario null
     setUsuario(null);
-    
-    // 🔹 4. Limpias el carrito en memoria (React) → se pone en []
-    setCarrito([]); 
-    
-    // 🔹 5. También borras cualquier carrito guardado en localStorage
-    localStorage.removeItem("carrito"); 
-    
-    // 🔹 6. Rediriges al usuario a la página de login
+    setCarrito([]);
+    localStorage.removeItem("carrito");
     navigate('/login');
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-purple-600 text-white shadow-md">
       <nav className="flex justify-between items-center max-w-6xl mx-auto px-6 py-3">
-        {/* Logo → inicio */}
+        {/* Logo */}
         <div className="navbar-left">
           <Link
             to="/"
@@ -46,34 +43,7 @@ export default function Navbar() {
         </div>
 
         {/* Navegación derecha */}
-        <div className="flex items-center gap-6">
-          {/* ✅ Login o Logout según sesión */}
-          {!token ? (
-            <Link
-              to="/login"
-              className="text-sm font-medium hover:text-yellow-300 transition-colors"
-            >
-              Login
-            </Link>
-          ) : (
-            <button
-              className="text-sm font-medium hover:text-yellow-300 transition-colors"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          )}
-
-          {/* Mis Órdenes solo si está logueado */}
-          {token && (
-            <Link
-              to="/mis-ordenes"
-              className="text-sm font-medium hover:text-yellow-300 transition-colors"
-            >
-              Mis Órdenes
-            </Link>
-          )}
-
+        <div className="flex items-center gap-6 relative">
           {/* Carrito */}
           <Link to="/carrito" className="relative">
             <FaShoppingCart size={20} className="hover:text-yellow-300 transition-colors" />
@@ -83,6 +53,55 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+
+          {/* Login o Dropdown */}
+          {!token ? (
+            <Link
+              to="/login"
+              className="text-sm font-medium hover:text-yellow-300 transition-colors"
+            >
+              Login
+            </Link>
+          ) : (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                className="flex items-center gap-1 text-sm font-medium hover:text-yellow-300 transition-colors"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <FaUserCircle size={20} />
+              </button>
+
+              {/* Dropdown animado */}
+              <div
+                className={`
+                  absolute right-0 mt-2 w-40 bg-white text-purple-900 rounded-lg shadow-lg overflow-hidden z-50
+                  transform transition-all duration-300 origin-top-right
+                  ${dropdownOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"}
+                `}
+              >
+                <Link
+                  to="/mi-perfil"
+                  className="block px-4 py-2 hover:bg-purple-100 transition-colors"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  Mi Perfil
+                </Link>
+                <Link
+                  to="/mis-ordenes"
+                  className="block px-4 py-2 hover:bg-purple-100 transition-colors"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  Mis Órdenes
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 hover:bg-purple-100 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     </header>
