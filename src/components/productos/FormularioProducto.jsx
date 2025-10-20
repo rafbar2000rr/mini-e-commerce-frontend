@@ -14,7 +14,6 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
   const enEdicion = Boolean(productoEditando);
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔹 Llenar formulario si estamos editando
   useEffect(() => {
     if (productoEditando) {
       setForm({
@@ -30,6 +29,7 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token"); // 🔹 Obtenemos token
 
     const formData = new FormData();
     formData.append("nombre", form.nombre);
@@ -44,12 +44,18 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
 
       if (enEdicion) {
         const res = await axios.put(`${API_URL}/productos/${productoEditando._id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${token}`, // 🔹 Enviamos token
+          },
         });
         nuevoProducto = res.data;
       } else {
         const res = await axios.post(`${API_URL}/productos`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${token}`, // 🔹 Enviamos token
+          },
         });
         nuevoProducto = res.data.producto;
       }
@@ -59,7 +65,7 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
       setForm({ nombre: "", precio: "", descripcion: "", categoria: "", stock: "" });
       setImagen(null);
     } catch (error) {
-      console.error("Error al guardar producto:", error);
+      console.error("Error al guardar producto:", error.response?.data || error.message);
     }
   };
 
