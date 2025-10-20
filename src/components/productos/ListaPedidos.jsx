@@ -7,13 +7,19 @@ function ListaPedidos() {
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState(""); // 🔎 Nuevo estado de búsqueda
   const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     fetchOrdenes();
   }, []);
 
   const fetchOrdenes = async () => {
     try {
-      const res = await fetch(`${API_URL}/orders`);
+      const token = localStorage.getItem("token"); // 🔹 token guardado
+      const res = await fetch(`${API_URL}/orders`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // 🔹 enviamos token
+        },
+      });
       if (!res.ok) throw new Error("Error al obtener órdenes");
       const data = await res.json();
       setOrdenes(data);
@@ -31,9 +37,13 @@ function ListaPedidos() {
     if (!confirmar) return;
 
     try {
+      const token = localStorage.getItem("token"); // 🔹 token guardado
       const res = await fetch(`${API_URL}/orders/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 🔹 enviamos token
+        },
         body: JSON.stringify({ estado: nuevoEstado }),
       });
       if (!res.ok) throw new Error("Error al actualizar estado");
@@ -59,7 +69,6 @@ function ListaPedidos() {
     }
   };
 
-  // ✅ Filtrado en tiempo real
   const ordenesFiltradas = ordenes.filter((orden) => {
     const texto = busqueda.toLowerCase();
     return (
@@ -72,8 +81,6 @@ function ListaPedidos() {
   return (
     <div>
       <h2>Lista de Órdenes</h2>
-
-      {/* 🔎 Input de búsqueda */}
       <input
         type="text"
         placeholder="Buscar por cliente, email o estado..."
@@ -87,7 +94,6 @@ function ListaPedidos() {
           border: "1px solid #ccc",
         }}
       />
-
       {ordenesFiltradas.length === 0 ? (
         <p>No hay órdenes registradas</p>
       ) : (
