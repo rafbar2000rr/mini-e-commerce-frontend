@@ -7,13 +7,13 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
     precio: "",
     descripcion: "",
     categoria: "",
-    stock: "", // 👈 agregado
+    stock: "",
   });
   const [imagen, setImagen] = useState(null);
 
   const enEdicion = Boolean(productoEditando);
   const API_URL = import.meta.env.VITE_API_URL;
-  
+
   // 🔹 Llenar formulario si estamos editando
   useEffect(() => {
     if (productoEditando) {
@@ -22,7 +22,7 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
         precio: productoEditando.precio,
         descripcion: productoEditando.descripcion,
         categoria: productoEditando.categoria?._id || "",
-        stock: productoEditando.stock || 0, // 👈 cargar stock existente
+        stock: productoEditando.stock || 0,
       });
       setImagen(null);
     }
@@ -36,24 +36,28 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
     formData.append("precio", form.precio);
     formData.append("descripcion", form.descripcion);
     formData.append("categoria", form.categoria);
-    formData.append("stock", form.stock); // 👈 enviar stock
+    formData.append("stock", form.stock);
     if (imagen) formData.append("imagen", imagen);
 
     try {
+      let nuevoProducto;
+
       if (enEdicion) {
-        await axios.put(`${API_URL}/productos/${productoEditando._id}`, formData, {
+        const res = await axios.put(`${API_URL}/productos/${productoEditando._id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+        nuevoProducto = res.data;
       } else {
-        await axios.post(`${API_URL}/productos`, formData, {
+        const res = await axios.post(`${API_URL}/productos`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+        nuevoProducto = res.data.producto;
       }
 
-      // limpiar formulario
+      onProductoAgregado(nuevoProducto);
+
       setForm({ nombre: "", precio: "", descripcion: "", categoria: "", stock: "" });
       setImagen(null);
-      onProductoAgregado();
     } catch (error) {
       console.error("Error al guardar producto:", error);
     }
@@ -62,7 +66,7 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
   const handleCancelar = () => {
     setForm({ nombre: "", precio: "", descripcion: "", categoria: "", stock: "" });
     setImagen(null);
-    onProductoAgregado();
+    onProductoAgregado(null);
   };
 
   return (
@@ -89,7 +93,6 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
         onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
         className="border w-full p-2 rounded-lg"
       />
-
       <select
         name="categoria"
         value={form.categoria}
@@ -103,8 +106,6 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
           </option>
         ))}
       </select>
-
-      {/* 🔹 Campo de stock */}
       <input
         name="stock"
         type="number"
@@ -114,14 +115,12 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
         onChange={(e) => setForm({ ...form, stock: e.target.value })}
         className="border w-full p-2 rounded-lg"
       />
-
       <input
         type="file"
         accept="image/*"
         onChange={(e) => setImagen(e.target.files[0])}
         className="border w-full p-2 rounded-lg"
       />
-
       <div className="flex space-x-2">
         <button
           type="submit"
@@ -129,7 +128,6 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
         >
           {enEdicion ? "Actualizar" : "Agregar"} Producto
         </button>
-
         {enEdicion && (
           <button
             type="button"

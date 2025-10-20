@@ -1,109 +1,106 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import FormularioProducto from "./FormularioProducto";
 import ListaProductos from "./ListaProductos";
 
 export default function PanelProductos() {
-  const [refrescar, setRefrescar] = useState(false);
+  const [productos, setProductos] = useState([]);
   const [productoEditando, setProductoEditando] = useState(null);
-
   const [categorias, setCategorias] = useState([]);
-  const [nuevaCategoria, setNuevaCategoria] = useState("");
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [refrescar, setRefrescar] = useState(false);
+
   const API_URL = import.meta.env.VITE_API_URL;
-  // 🔹 Cargar categorías
+
+  // 🔹 Cargar categorías al inicio
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const res = await axios.get(`${API_URL}/categorias`);
-        setCategorias(res.data);
+        const token = localStorage.getItem("token");
+        const resCategorias = await axios.get(`${API_URL}/categorias`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCategorias(resCategorias.data);
       } catch (error) {
-        console.error("❌ Error al cargar categorías:", error.message);
+        console.error("Error al cargar categorías:", error);
       }
     };
     fetchCategorias();
-  }, [refrescar]);
+  }, []);
 
-  // 🔹 Agregar nueva categoría
-  const handleAgregarCategoria = async (e) => {
-    e.preventDefault();
-    if (!nuevaCategoria.trim()) return;
-
+  // 🔹 Cargar productos con búsqueda y paginación
+  const fetchProductos = useCallback(async () => {
     try {
-      const res = await axios.post(`${API_URL}/categorias`, { nombre: nuevaCategoria });
-      setCategorias([...categorias, res.data]); // ✅ agregamos directo al estado
-      setNuevaCategoria("");
-    } catch (error) {
-      console.error("❌ Error al agregar categoría:", error.message);
-    }
-  };
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_URL}/productos`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page, search },
+      });
 
-  // 🔹 Eliminar categoría
-  const handleEliminarCategoria = async (id) => {
-    if (!window.confirm("¿Seguro que quieres eliminar esta categoría?")) return;
-    try {
-      await axios.delete(`${API_URL}/categorias/${id}`);
-      setCategorias(categorias.filter((c) => c._id !== id)); // ✅ actualizamos sin refrescar
+      setProductos(res.data.productos);
+      setPages(res.data.pages);
     } catch (error) {
-      console.error("❌ Error al eliminar categoría:", error.message);
+      console.error("Error al cargar productos:", error);
     }
-  };
+  }, [page, search, refrescar]);
 
-  // 🔹 Manejar producto agregado o actualizado
-  const handleProductoAgregado = () => {
-    setRefrescar(!refrescar);
+  useEffect(() => {
+    fetchProductos();
+  }, [fetchProductos]);
+
+  // 🔹 Cuando se agrega o edita un producto
+  const handleProductoAgregado = (nuevoProducto) => {
+    setRefrescar(prev => !prev); // fuerza recarga
     setProductoEditando(null);
   };
 
-  const handleEditar = (producto) => {
-    setProductoEditando(producto);
+  // 🔹 Eliminar producto
+  const handleEliminar = async (id) => {
+    if (!window.confirm("¿Seguro que quieres eliminar este producto?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/productos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setRefrescar(prev => !prev);
+    } catch (error) {
+      console.error("Error al eliminar producto:", error);
+    }
+  };
+
+  // 🔹 Actualizar stock
+  const handleActualizarStock = async (id, cantidad) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.patch(`${API_URL}/productos/${id}/stock`, { cantidad }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProductos(prev => prev.map(p => p._id === id ? res.data.producto : p));
+    } catch (error) {
+      console.error("Error al actualizar stock:", error);
+    }
   };
 
   return (
     <div className="space-y-8">
-      {/* Formulario para crear categorías */}
-      <form onSubmit={handleAgregarCategoria} className="flex space-x-2">
-        <input
-          type="text"
-          placeholder="Nueva categoría"
-          value={nuevaCategoria}
-          onChange={(e) => setNuevaCategoria(e.target.value)}
-          className="border p-2 rounded-lg w-full"
-        />
-        <button
-          type="submit"
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow"
-        >
-          Agregar
-        </button>
-      </form>
-
-      {/* Mostrar categorías existentes con botón de eliminar */}
-      <div className="flex flex-wrap gap-2">
-        {categorias.map((cat) => (
-          <span
-            key={cat._id}
-            className="bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center space-x-2"
-          >
-            <span>{cat.nombre}</span>
-            <button
-              onClick={() => handleEliminarCategoria(cat._id)}
-              className="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded-full text-xs"
-            >
-              X
-            </button>
-          </span>
-        ))}
-      </div>
-
-      {/* Formulario de productos */}
       <FormularioProducto
         onProductoAgregado={handleProductoAgregado}
         productoEditando={productoEditando}
-        categorias={categorias}   // ✅ pasamos categorías como prop
+        categorias={categorias}
       />
-
-      {/* Lista de productos */}
-      <ListaProductos refrescar={refrescar} onEditar={handleEditar} />
+      <ListaProductos
+        productos={productos}
+        onEditar={setProductoEditando}
+        onEliminar={handleEliminar}
+        onActualizarStock={handleActualizarStock}
+        page={page}
+        setPage={setPage}
+        pages={pages}
+        search={search}
+        setSearch={setSearch}
+      />
     </div>
   );
 }

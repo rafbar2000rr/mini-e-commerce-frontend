@@ -1,57 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
 
-export default function ListaProductos({ refrescar, onEditar }) {
-  const [productos, setProductos] = useState([]);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
+export default function ListaProductos({ productos, onEditar, onEliminar, onActualizarStock, page, setPage, pages, search, setSearch }) {
   const API_URL = import.meta.env.VITE_API_URL;
-
-  const fetchProductos = useCallback(async () => {
-    try {
-      const token = localStorage.getItem("token"); // 🔹 Tomamos el token guardado
-      const res = await axios.get(`${API_URL}/productos`, {
-        params: { page, limit: 5, search },
-        headers: { Authorization: `Bearer ${token}` }, // 🔹 Lo enviamos en headers
-      });
-      setProductos(res.data.productos);
-      setPages(res.data.pages);
-    } catch (error) {
-      console.error("Error al cargar productos:", error);
-    }
-  }, [page, search]);
-
-  useEffect(() => {
-    fetchProductos();
-  }, [refrescar, fetchProductos]);
-
-  const eliminarProducto = async (id) => {
-    if (!window.confirm("¿Seguro que quieres eliminar este producto?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/productos/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchProductos();
-    } catch (error) {
-      console.error("Error al eliminar producto:", error);
-    }
-  };
-
-  const actualizarStock = async (id, cantidad) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.patch(`${API_URL}/productos/${id}/stock`, { cantidad }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchProductos();
-    } catch (error) {
-      console.error("Error al actualizar stock:", error);
-    }
-  };
 
   const getStockColor = (stock) => {
     if (stock <= 5) return "text-red-600";
@@ -87,7 +37,7 @@ export default function ListaProductos({ refrescar, onEditar }) {
           </thead>
 
           <AnimatePresence component="tbody">
-            {productos.map((producto) => (
+            {productos.map(producto => (
               <motion.tr
                 key={producto._id}
                 initial={{ opacity: 0, y: -10 }}
@@ -105,24 +55,12 @@ export default function ListaProductos({ refrescar, onEditar }) {
                     />
                   )}
                 </td>
-
-                <td className="p-3 border-b">
-                  <Link
-                    to={`/producto/${producto._id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {producto.nombre}
-                  </Link>
-                </td>
-
-                <td className="p-3 border-b font-semibold text-green-600">
-                  ${producto.precio}
-                </td>
-
+                <td className="p-3 border-b">{producto.nombre}</td>
+                <td className="p-3 border-b font-semibold text-green-600">${producto.precio}</td>
                 <td className="p-3 border-b">
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => actualizarStock(producto._id, -1)}
+                      onClick={() => onActualizarStock(producto._id, -1)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-full w-6 h-6 flex items-center justify-center"
                     >
                       −
@@ -131,25 +69,15 @@ export default function ListaProductos({ refrescar, onEditar }) {
                       {producto.stock ?? 0}
                     </span>
                     <button
-                      onClick={() => actualizarStock(producto._id, 1)}
+                      onClick={() => onActualizarStock(producto._id, 1)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-full w-6 h-6 flex items-center justify-center"
                     >
                       +
                     </button>
                   </div>
                 </td>
-
                 <td className="p-3 border-b">{producto.descripcion}</td>
-                <td className="p-3 border-b">
-                  {(() => {
-                    if (!producto.categoria) return "Sin categoría";
-                    if (typeof producto.categoria === "string") return producto.categoria;
-                    if (typeof producto.categoria === "object")
-                      return producto.categoria.nombre || "Sin nombre";
-                    return "Sin categoría";
-                  })()}
-                </td>
-
+                <td className="p-3 border-b">{producto.categoria?.nombre || "Sin categoría"}</td>
                 <td className="p-3 border-b space-x-2">
                   <button
                     onClick={() => onEditar(producto)}
@@ -158,7 +86,7 @@ export default function ListaProductos({ refrescar, onEditar }) {
                     Editar
                   </button>
                   <button
-                    onClick={() => eliminarProducto(producto._id)}
+                    onClick={() => onEliminar(producto._id)}
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg shadow"
                   >
                     Eliminar
@@ -170,6 +98,7 @@ export default function ListaProductos({ refrescar, onEditar }) {
         </table>
       </div>
 
+      {/* 🔹 Paginación */}
       <div className="flex justify-center mt-6 space-x-2">
         {Array.from({ length: pages }, (_, i) => (
           <motion.button
