@@ -9,10 +9,13 @@ export default function ListaProductos({ refrescar, onEditar }) {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const API_URL = import.meta.env.VITE_API_URL;
+
   const fetchProductos = useCallback(async () => {
     try {
+      const token = localStorage.getItem("token"); // 🔹 Tomamos el token guardado
       const res = await axios.get(`${API_URL}/productos`, {
         params: { page, limit: 5, search },
+        headers: { Authorization: `Bearer ${token}` }, // 🔹 Lo enviamos en headers
       });
       setProductos(res.data.productos);
       setPages(res.data.pages);
@@ -28,7 +31,10 @@ export default function ListaProductos({ refrescar, onEditar }) {
   const eliminarProducto = async (id) => {
     if (!window.confirm("¿Seguro que quieres eliminar este producto?")) return;
     try {
-      await axios.delete(`${API_URL}/productos/${id}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/productos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       fetchProductos();
     } catch (error) {
       console.error("Error al eliminar producto:", error);
@@ -37,8 +43,9 @@ export default function ListaProductos({ refrescar, onEditar }) {
 
   const actualizarStock = async (id, cantidad) => {
     try {
-      await axios.patch(`${API_URL}/productos/${id}/stock`, {
-        cantidad,
+      const token = localStorage.getItem("token");
+      await axios.patch(`${API_URL}/productos/${id}/stock`, { cantidad }, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchProductos();
     } catch (error) {
@@ -112,7 +119,6 @@ export default function ListaProductos({ refrescar, onEditar }) {
                   ${producto.precio}
                 </td>
 
-                {/* 🔹 STOCK */}
                 <td className="p-3 border-b">
                   <div className="flex items-center space-x-2">
                     <button
