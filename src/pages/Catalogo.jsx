@@ -124,11 +124,13 @@ useEffect(() => {
                   >
                     <Link to={`/producto/${producto._id}`} className="block overflow-hidden">
                       <img
-                          src={`${API_URL}/catalogo/uploads/${producto.imagen}`} // 🔹 nueva ruta pública
-                          alt={producto.nombre}
-                          className="w-full h-56 object-cover transition-transform duration-500 hover:scale-105"
+                        src={
+                            producto.imagen
+                                 ? `${API_URL}/uploads/${producto.imagen}`
+                                  : `${API_URL}/uploads/placeholder.png`
+                            }
+                            alt={producto.nombre}
                       />
-
                     </Link>
 
                     <div className="mt-3 flex flex-col gap-2">
