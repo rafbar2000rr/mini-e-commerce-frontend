@@ -28,7 +28,7 @@ export default function Checkout() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/me`, {
+        const res = await fetch(`${API_URL}/api/me`, { // ruta corregida
           headers: { Authorization: `Bearer ${token}` },
         });
 
