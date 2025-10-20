@@ -14,7 +14,7 @@ import PanelPedidos from '../src/components/productos/PanelPedidos';
 import DetalleProducto from './pages/DetalleProducto';
 import Checkout from './pages/Checkout';
 import RutaPublica from './components/RutaPublica';
-import MiPerfil from './pages/MiPerfil'
+import MiPerfil from './pages/MiPerfil';
 
 function App() {
   return (
@@ -76,9 +76,10 @@ function App() {
           <Route
              path="/mi-perfil"
              element={
-              <RutaPrivada>
-                <MiPerfil />
-              </RutaPrivada>
+              <MiPerfil />
+              // <RutaPrivada>
+              //   <MiPerfil />
+              // </RutaPrivada>
               }
           />
           <Route path="/producto/:id" element={<DetalleProducto />} />
