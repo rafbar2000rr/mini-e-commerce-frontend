@@ -1,11 +1,11 @@
 // src/admin/ListaPedidos.jsx
 import { useEffect, useState } from "react";
 
-function ListaPedidos() {
+function ListaPedidos({ usuario }) { // 🔹 recibimos el usuario logueado
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [busqueda, setBusqueda] = useState(""); // 🔎 Nuevo estado de búsqueda
+  const [busqueda, setBusqueda] = useState("");
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
@@ -14,11 +14,9 @@ function ListaPedidos() {
 
   const fetchOrdenes = async () => {
     try {
-      const token = localStorage.getItem("token"); // 🔹 token guardado
+      const token = localStorage.getItem("token"); // 🔹 enviar token si lo necesitas
       const res = await fetch(`${API_URL}/orders`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // 🔹 enviamos token
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Error al obtener órdenes");
       const data = await res.json();
@@ -37,16 +35,16 @@ function ListaPedidos() {
     if (!confirmar) return;
 
     try {
-      const token = localStorage.getItem("token"); // 🔹 token guardado
+      const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/orders/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔹 enviamos token
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ estado: nuevoEstado }),
       });
-      if (!res.ok) throw new Error("Error al actualizar estado");
+      if (!res.ok) throw new Error("No tienes permiso para actualizar el estado");
       fetchOrdenes();
     } catch (err) {
       alert("❌ " + err.message);
@@ -94,6 +92,7 @@ function ListaPedidos() {
           border: "1px solid #ccc",
         }}
       />
+
       {ordenesFiltradas.length === 0 ? (
         <p>No hay órdenes registradas</p>
       ) : (
@@ -131,21 +130,25 @@ function ListaPedidos() {
                 <td>${orden.total}</td>
                 <td>{new Date(orden.fecha).toLocaleDateString()}</td>
                 <td style={getEstadoColor(orden.estado)}>
-                  <select
-                    value={orden.estado}
-                    onChange={(e) => cambiarEstado(orden._id, e.target.value)}
-                    style={{
-                      padding: "5px",
-                      borderRadius: "5px",
-                      border: "1px solid #ccc",
-                      background: "white",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <option value="pendiente">Pendiente</option>
-                    <option value="enviado">Enviado</option>
-                    <option value="entregado">Entregado</option>
-                  </select>
+                  {usuario.rol === "admin" ? (
+                    <select
+                      value={orden.estado}
+                      onChange={(e) => cambiarEstado(orden._id, e.target.value)}
+                      style={{
+                        padding: "5px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                        background: "white",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="enviado">Enviado</option>
+                      <option value="entregado">Entregado</option>
+                    </select>
+                  ) : (
+                    <span>{orden.estado}</span>
+                  )}
                 </td>
               </tr>
             ))}
