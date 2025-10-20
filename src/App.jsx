@@ -76,10 +76,9 @@ function App() {
           <Route
              path="/mi-perfil"
              element={
-              <MiPerfil />
-              // <RutaPrivada>
-              //   <MiPerfil />
-              // </RutaPrivada>
+              <RutaPrivada>
+                <MiPerfil />
+              </RutaPrivada>
               }
           />
           <Route path="/producto/:id" element={<DetalleProducto />} />
