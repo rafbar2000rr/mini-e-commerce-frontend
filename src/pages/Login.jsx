@@ -22,9 +22,10 @@ function Login() {
     e.preventDefault();
     const API_URL = import.meta.env.VITE_API_URL; // ejemplo: https://.../auth
 
+
     try {
       // 🔹 Enviamos credenciales al backend
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
