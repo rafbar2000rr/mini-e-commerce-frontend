@@ -1,18 +1,30 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 
-//------------------------------------------------------------------
-// ✅ Creamos el contexto para poder usar el carrito en toda la app
-//------------------------------------------------------------------
+//-------------------------------------------------------------
+// ✅ Creamos el contexto del carrito
+//-------------------------------------------------------------
 export const CarritoContext = createContext();
 
+//-------------------------------------------------------------
+// ✅ Hook personalizado para acceder fácilmente al carrito
+//-------------------------------------------------------------
+export function useCarrito() {
+  const context = useContext(CarritoContext);
+  if (!context) {
+    throw new Error("useCarrito debe usarse dentro de un <CarritoProvider>");
+  }
+  return context;
+}
+
+//-------------------------------------------------------------
+// ✅ Proveedor del carrito
+//-------------------------------------------------------------
 export function CarritoProvider({ children }) {
-  // ✅ Estado del carrito: inicializa desde localStorage
   const [carrito, setCarrito] = useState(() => {
     const guardado = localStorage.getItem("carrito");
     return guardado ? JSON.parse(guardado) : [];
   });
 
-  // ✅ Estado del usuario logueado (null si no está logueado)
   const [usuario, setUsuario] = useState(() => {
     const userData = localStorage.getItem("usuario");
     return userData ? JSON.parse(userData) : null;
@@ -20,27 +32,26 @@ export function CarritoProvider({ children }) {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  //-----------------------------------------------------------------------------------
-  // ✅ Siempre guardar carrito en localStorage (haya login o no)
+  //-------------------------------------------------------------
+  // 🔹 Guardar carrito en localStorage
+  //-------------------------------------------------------------
   useEffect(() => {
     localStorage.setItem("carrito", JSON.stringify(carrito));
   }, [carrito]);
 
-  //------------------------------------------------------------------------------------
-  // ✅ Recuperar carrito desde el backend cuando el usuario se loguea
+  //-------------------------------------------------------------
+  // 🔹 Recuperar carrito desde el backend al loguearse
+  //-------------------------------------------------------------
   useEffect(() => {
     const fetchCarrito = async () => {
       if (usuario?.token) {
         try {
-          // 🔹 Traer carrito desde backend
           const res = await fetch(`${API_URL}/carrito`, {
             headers: { Authorization: `Bearer ${usuario.token}` },
           });
 
           if (res.ok) {
             const data = await res.json();
-
-            // 3️⃣ Normalizamos la respuesta para tener siempre el mismo formato
             const carritoNormalizado = (data || []).map((item) => ({
               _id: item.productoId._id,
               nombre: item.productoId.nombre,
@@ -50,7 +61,6 @@ export function CarritoProvider({ children }) {
               cantidad: item.cantidad,
             }));
 
-            // 4️⃣ Si el backend está vacío pero el frontend tenía productos en localStorage
             if (carritoNormalizado.length === 0 && carrito.length > 0) {
               for (const prod of carrito) {
                 await fetch(`${API_URL}/carrito`, {
@@ -66,7 +76,6 @@ export function CarritoProvider({ children }) {
                 });
               }
             } else {
-              // 5️⃣ Si el backend tiene productos, los usamos para actualizar el carrito
               setCarrito(carritoNormalizado);
             }
           }
@@ -76,17 +85,15 @@ export function CarritoProvider({ children }) {
       }
     };
     fetchCarrito();
-  }, [usuario?.token]); // se vuelve a correr cuando cambia el usuario/token
+  }, [usuario?.token]);
 
-  //----------------------------------------------------------------------------
-
+  //-------------------------------------------------------------
   // 🔹 Agregar producto al carrito
+  //-------------------------------------------------------------
   const agregarAlCarrito = async (producto) => {
     if (!producto || !producto._id) return;
-
     const productoIdStr = producto._id.toString();
 
-    // 3️⃣ Actualiza el carrito en el estado de React
     setCarrito((prev) => {
       const existe = prev.find((p) => p._id === productoIdStr);
       return existe
@@ -98,7 +105,6 @@ export function CarritoProvider({ children }) {
         : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
     });
 
-    // 4️⃣ Si el usuario está logueado, también guarda el cambio en el backend
     if (usuario?.token) {
       try {
         await fetch(`${API_URL}/carrito`, {
@@ -115,9 +121,9 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  //---------------------------------------------------------------------------
-
-  // 🔹 Elimina el producto del carrito
+  //-------------------------------------------------------------
+  // 🔹 Eliminar producto del carrito
+  //-------------------------------------------------------------
   const eliminarDelCarrito = async (id) => {
     setCarrito((prev) => prev.filter((p) => p._id?.toString() !== id.toString()));
 
@@ -133,9 +139,9 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  //----------------------------------------------------------------------------------
-
+  //-------------------------------------------------------------
   // 🔹 Vaciar carrito completo
+  //-------------------------------------------------------------
   const vaciarCarrito = async () => {
     setCarrito([]);
     localStorage.removeItem("carrito");
@@ -152,9 +158,9 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  //--------------------------------------------------------------------------------------
-
-  // 🔹 Actualizar cantidad de un producto
+  //-------------------------------------------------------------
+  // 🔹 Actualizar cantidad
+  //-------------------------------------------------------------
   const actualizarCantidad = async (id, nuevaCantidad) => {
     if (nuevaCantidad < 1) {
       eliminarDelCarrito(id);
@@ -185,8 +191,9 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  //--------------------------------------------------------------------------------
-  // ✅ Exponemos valores y funciones para que los use toda la app
+  //-------------------------------------------------------------
+  // 🔹 Proveer contexto a toda la app
+  //-------------------------------------------------------------
   return (
     <CarritoContext.Provider
       value={{
@@ -204,13 +211,3 @@ export function CarritoProvider({ children }) {
     </CarritoContext.Provider>
   );
 }
-
-import { useContext } from "react";
-
-export const useCarrito = () => {
-  const context = useContext(CarritoContext);
-  if (!context) {
-    throw new Error("useCarrito debe usarse dentro de un CarritoProvider");
-  }
-  return context;
-};
