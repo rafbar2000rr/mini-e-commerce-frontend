@@ -31,7 +31,7 @@ function Catalogo() {
     setError("");
 
     fetch(
-      `${API_URL}/products/catalogo?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
+      `${API_URL}/catalogo?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
     )
       .then((res) => res.json())
       .then((data) => {
