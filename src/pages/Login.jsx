@@ -19,61 +19,55 @@ function Login() {
 
   // ✅ Manejo del login
   const handleLogin = async (e) => {
-    e.preventDefault(); // evita que se recargue la página
-  const API_URL = import.meta.env.VITE_API_URL;
-    try {
-      // enviamos la petición al backend con email y contraseña
-      const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
+  e.preventDefault();
+  const API_URL = import.meta.env.VITE_API_URL; // ejemplo: https://.../auth
+
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setMessage(data.error || "Credenciales incorrectas 💕");
+      return;
+    }
+
+    // ✅ Guardar token y usuario en localStorage
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("usuario", JSON.stringify(data.user));
+
+    // ✅ Guardar en contexto
+    setUsuario({ ...data.user, token: data.token });
+
+    // 🔹 Sincronizar carrito si hay items locales
+    const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
+    if (carritoLocal.length > 0) {
+      const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.token}`,
         },
-        body: JSON.stringify({ email, password }) // enviamos el body como JSON
+        body: JSON.stringify({ carritoLocal }),
       });
 
-      const data = await res.json(); // convertimos la respuesta
-
-      if (res.ok) {
-        // ✅ guardamos el token en localStorage
-        localStorage.setItem('token', data.token);
-
-        // ✅ obtenemos carrito local (si lo hubiera)
-        const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
-
-        if (carritoLocal.length > 0) {
-          // Si hay productos en localStorage, sincronizamos con backend
-          const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${data.token}`, // pasamos token en headers
-            },
-            body: JSON.stringify({ carritoLocal }), // enviamos carrito local
-          });
-
-          // ✅ si la sincronización es exitosa, guardamos el carrito final
-          if (syncRes.ok) {
-            const carritoFinal = await syncRes.json();
-            localStorage.setItem("carrito", JSON.stringify(carritoFinal));
-          }
-        }
-        // ⚠️ Si el carrito local está vacío, no borramos nada en backend,
-        // el contexto se encargará de recuperar el carrito del backend.
-
-        // ✅ guardamos el usuario en el contexto
-        setUsuario({ token: data.token });
-
-        // ✅ redirigimos al catálogo
-        navigate("/catalogo");
-      } else {
-        // si las credenciales son incorrectas, mostramos mensaje del backend
-        alert(data.msg);
+      if (syncRes.ok) {
+        const carritoFinal = await syncRes.json();
+        localStorage.setItem("carrito", JSON.stringify(carritoFinal));
       }
-    } catch {
-      // si hubo error de conexión
-      setMessage('Error de red');
     }
-  };
+
+    navigate("/catalogo");
+  } catch (err) {
+    console.error("❌ Error login:", err);
+    setMessage("Error de conexión 💕");
+  }
+};
+
 
   // ✅ Renderizado del formulario de login
   return (
