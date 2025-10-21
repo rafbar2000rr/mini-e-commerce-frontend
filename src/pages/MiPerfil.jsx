@@ -14,7 +14,7 @@ export default function MiPerfil() {
 
 // Asegúrate que sea algo como: https://mini-e-commerce-backend-production.up.railway.app/api/auth
 
-  const API_URL = import.meta.env.VITE_API_URL || "/api";
+  const API_URL = import.meta.env.VITE_API_URL;
  // ej: https://mini-e-commerce-backend-production.up.railway.app/auth
   const token = localStorage.getItem("token");
 
