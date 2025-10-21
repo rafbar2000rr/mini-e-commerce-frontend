@@ -37,7 +37,7 @@ useEffect(() => {
 
   // ✅ Cambiamos la ruta a /catalogo (pública) en vez de /productos
   fetch(
-    `${API_URL}products/catalogo?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
+    `${API_URL}/products/catalogo?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
   )
     .then((res) => res.json())
     .then((data) => {
