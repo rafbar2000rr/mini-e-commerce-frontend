@@ -1,9 +1,10 @@
 // ✅ Componente de Registro
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CarritoContext } from "../context/CarritoContext";
 
 //-----------------------------------------
-//Registra al usuario en la base de datos.
+// Registra al usuario en la base de datos y sincroniza carrito
 //-----------------------------------------
 function Registro() {
   // ✅ Estados para controlar los campos del formulario
@@ -16,37 +17,62 @@ function Registro() {
 
   // ✅ Hook de navegación de React Router
   const navigate = useNavigate();
+
+  // ✅ Obtenemos setUsuario desde el contexto para guardar usuario logueado
+  const { setUsuario } = useContext(CarritoContext);
+
   const API_URL = import.meta.env.VITE_API_URL;
+
   // ✅ Función que maneja el registro del usuario
   const handleRegistro = async (e) => {
     e.preventDefault(); // prevenimos recarga de la página
 
     try {
-      // enviamos datos al backend
+      // 🔹 Enviamos datos al backend
       const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json', // enviamos JSON
-        },
-        body: JSON.stringify({ nombre, email, password }), // convertimos datos a JSON
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, email, password }),
       });
 
-      // obtenemos la respuesta en JSON
       const data = await res.json();
 
-      if (res.ok) {
-        // ✅ si el registro es exitoso, guardamos el token
-        localStorage.setItem('token', data.token);
-
-        // ✅ redirigimos al usuario a la página principal (o al login si prefieres)
-        navigate('/');
-      } else {
-        // si hay error, mostramos mensaje
-        setMensaje(data.error || 'Error en el registro.');
+      if (!res.ok) {
+        // 🔹 Si hay error en registro
+        setMensaje(data.error || 'Error en el registro 💕');
+        return;
       }
-    } catch {
-      // error de conexión o servidor caído
-      setMensaje('Error de red');
+
+      // ✅ Guardar token y usuario en localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("usuario", JSON.stringify(data.user));
+
+      // ✅ Guardar usuario en contexto
+      setUsuario({ ...data.user, token: data.token });
+
+      // 🔹 Sincronizar carrito si hay items locales
+      const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carritoLocal.length > 0) {
+        const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${data.token}`,
+          },
+          body: JSON.stringify({ carritoLocal }),
+        });
+
+        if (syncRes.ok) {
+          const carritoFinal = await syncRes.json();
+          localStorage.setItem("carrito", JSON.stringify(carritoFinal));
+        }
+      }
+
+      // ✅ Redirigir al catálogo o inicio
+      navigate("/catalogo");
+    } catch (err) {
+      console.error("❌ Error registro:", err);
+      setMensaje('Error de conexión 💕');
     }
   };
 
