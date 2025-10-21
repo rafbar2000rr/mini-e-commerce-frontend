@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CarritoContext } from "../context/CarritoContext";
 
 //----------------------
-//Identifica al usuario
+// Identifica al usuario y gestiona login
 //----------------------
 function Login() {
   // ✅ Estados para email, contraseña y mensajes de error/estado
@@ -19,55 +19,59 @@ function Login() {
 
   // ✅ Manejo del login
   const handleLogin = async (e) => {
-  e.preventDefault();
-  const API_URL = import.meta.env.VITE_API_URL; // ejemplo: https://.../auth
+    e.preventDefault();
+    const API_URL = import.meta.env.VITE_API_URL; // ejemplo: https://.../auth
 
-  try {
-    const res = await fetch(`${API_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setMessage(data.error || "Credenciales incorrectas 💕");
-      return;
-    }
-
-    // ✅ Guardar token y usuario en localStorage
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("usuario", JSON.stringify(data.user));
-
-    // ✅ Guardar en contexto
-    setUsuario({ ...data.user, token: data.token });
-
-    // 🔹 Sincronizar carrito si hay items locales
-    const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
-    if (carritoLocal.length > 0) {
-      const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${data.token}`,
-        },
-        body: JSON.stringify({ carritoLocal }),
+    try {
+      // 🔹 Enviamos credenciales al backend
+      const res = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (syncRes.ok) {
-        const carritoFinal = await syncRes.json();
-        localStorage.setItem("carrito", JSON.stringify(carritoFinal));
+      const data = await res.json();
+
+      // 🔹 Si hay error en credenciales
+      if (!res.ok) {
+        setMessage(data.error || "Credenciales incorrectas 💕");
+        return;
       }
+
+      // ✅ Guardar token y usuario en localStorage para persistencia
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("usuario", JSON.stringify(data.user));
+
+      // ✅ Guardar usuario en contexto para que toda la app lo tenga disponible
+      setUsuario({ ...data.user, token: data.token });
+
+      // 🔹 Sincronizar carrito si hay items locales guardados
+      const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carritoLocal.length > 0) {
+        const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${data.token}`,
+          },
+          body: JSON.stringify({ carritoLocal }),
+        });
+
+        // 🔹 Guardamos carrito sincronizado en localStorage
+        if (syncRes.ok) {
+          const carritoFinal = await syncRes.json();
+          localStorage.setItem("carrito", JSON.stringify(carritoFinal));
+        }
+      }
+
+      // ✅ Redirigir al catálogo después del login
+      navigate("/catalogo");
+    } catch (err) {
+      // 🔹 Captura de errores de conexión
+      console.error("❌ Error login:", err);
+      setMessage("Error de conexión 💕");
     }
-
-    navigate("/catalogo");
-  } catch (err) {
-    console.error("❌ Error login:", err);
-    setMessage("Error de conexión 💕");
-  }
-};
-
+  };
 
   // ✅ Renderizado del formulario de login
   return (
