@@ -16,6 +16,7 @@ function Catalogo() {
 
   const { agregarAlCarrito } = useContext(CarritoContext);
   const API_URL = import.meta.env.VITE_API_URL || "";
+  const BASE_URL = import.meta.env.VITE_BASE_URL || ""; // ✅ URL para imágenes
 
   // 🔹 Cargar categorías
   useEffect(() => {
@@ -112,7 +113,7 @@ function Catalogo() {
                       className="block w-full h-56 overflow-hidden rounded-t-2xl"
                     >
                       <img
-                        src={`${API_URL.replace('/api','')}/uploads/${producto.imagen}`}
+                        src={producto.imagen ? `${BASE_URL}/uploads/${producto.imagen}` : '/placeholder.png'}
                         alt={producto.nombre}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                       />
