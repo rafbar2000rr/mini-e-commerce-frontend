@@ -15,7 +15,6 @@ function Catalogo() {
   const [mensajeCarrito, setMensajeCarrito] = useState("");
 
   const { agregarAlCarrito } = useContext(CarritoContext);
-  // ✅ URL base ya incluye /api
   const API_URL = import.meta.env.VITE_API_URL || "";
 
   // 🔹 Cargar categorías
@@ -113,7 +112,7 @@ function Catalogo() {
                       className="block w-full h-56 overflow-hidden rounded-t-2xl"
                     >
                       <img
-                        src={`${API_URL}/uploads/${producto.imagen}`}
+                        src={`${API_URL.replace('/api','')}/uploads/${producto.imagen}`}
                         alt={producto.nombre}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                       />

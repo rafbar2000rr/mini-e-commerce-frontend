@@ -8,10 +8,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
 
-  // ✅ URL de producción, ya incluye /api
   const API_URL = import.meta.env.VITE_API_URL || "";
 
-  // 🔹 Obtener usuario logueado
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -42,24 +40,19 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-md px-4 py-3 flex justify-between items-center">
-      {/* Logo */}
       <Link to="/catalogo" className="text-xl font-bold text-gray-700 flex items-center gap-2">
         🛍️ Mini E-Commerce
       </Link>
 
-      {/* Menú */}
       <div className="flex items-center gap-4">
-        {/* Catálogo */}
         <Link to="/catalogo" className="text-gray-600 hover:text-black flex items-center gap-1">
           Catálogo
         </Link>
 
-        {/* Carrito */}
         <Link to="/carrito" className="text-gray-600 hover:text-black flex items-center gap-1">
           <FaShoppingCart /> Carrito ({carrito.length})
         </Link>
 
-        {/* Usuario */}
         {usuario ? (
           <>
             <span className="text-gray-700 font-medium flex items-center gap-1">
