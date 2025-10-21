@@ -7,19 +7,18 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
 
-  // ✅ Si no existe la variable en el .env, usa un valor por defecto vacío
-  const API_URL = import.meta.env.VITE_API_URL || "";
+  const API_URL = import.meta.env.VITE_API_URL; 
+  // Ejemplo: "https://mini-e-commerce-backend-production.up.railway.app/api/auth"
 
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
-      if (!token || !API_URL) return;
+      if (!token) return;
 
       try {
         const res = await fetch(`${API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         if (!res.ok) throw new Error("No autorizado");
         const data = await res.json();
         setUsuario(data);
@@ -57,11 +56,11 @@ export default function Navbar() {
           Carrito ({carrito.length})
         </Link>
 
-        {/* Usuario logueado */}
+        {/* Si el usuario está logueado */}
         {usuario ? (
           <>
             <span className="text-gray-700 font-medium">
-              👋 Hola, {usuario.nombre?.split(" ")[0] || "Usuario"}
+              👋 Hola, {usuario.nombre.split(" ")[0]}
             </span>
             <Link to="/mi-perfil" className="text-gray-600 hover:text-black">
               Mi perfil
