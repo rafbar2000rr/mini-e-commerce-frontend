@@ -108,7 +108,7 @@ function Catalogo() {
                     className="bg-white border border-gray-200 rounded-2xl shadow-sm transform transition-all duration-300 hover:shadow-lg hover:-translate-y-2 hover:scale-[1.02] flex flex-col h-full overflow-hidden"
                   >
                     <Link
-                      to={`/producto/${producto._id}`}
+                      to={`/${producto._id}`}
                       className="block w-full h-56 overflow-hidden rounded-t-2xl"
                     >
                       <img
