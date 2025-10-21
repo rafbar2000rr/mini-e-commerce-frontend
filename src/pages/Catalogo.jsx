@@ -15,6 +15,7 @@ function Catalogo() {
   const [mensajeCarrito, setMensajeCarrito] = useState("");
 
   const { agregarAlCarrito } = useContext(CarritoContext);
+  // ✅ URL base ya incluye /api
   const API_URL = import.meta.env.VITE_API_URL || "";
 
   // 🔹 Cargar categorías
