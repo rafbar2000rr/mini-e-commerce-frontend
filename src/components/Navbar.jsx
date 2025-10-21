@@ -1,13 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useEffect, useState } from "react";
-import { FaShoppingCart, FaUser } from "react-icons/fa";
 
 export default function Navbar() {
   const { carrito } = useCarrito();
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
 
+  // ✅ Si no existe la variable en el .env, usa un valor por defecto vacío
   const API_URL = import.meta.env.VITE_API_URL || "";
 
   useEffect(() => {
@@ -19,6 +19,7 @@ export default function Navbar() {
         const res = await fetch(`${API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         if (!res.ok) throw new Error("No autorizado");
         const data = await res.json();
         setUsuario(data);
@@ -40,25 +41,29 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-md px-4 py-3 flex justify-between items-center">
-      <Link to="/catalogo" className="text-xl font-bold text-gray-700 flex items-center gap-2">
+      {/* Logo o nombre del sitio */}
+      <Link to="/catalogo" className="text-xl font-bold text-gray-700">
         🛍️ Mini E-Commerce
       </Link>
 
       <div className="flex items-center gap-4">
-        <Link to="/catalogo" className="text-gray-600 hover:text-black flex items-center gap-1">
+        {/* Catálogo */}
+        <Link to="/catalogo" className="text-gray-600 hover:text-black">
           Catálogo
         </Link>
 
-        <Link to="/carrito" className="text-gray-600 hover:text-black flex items-center gap-1">
-          <FaShoppingCart /> Carrito ({carrito.length})
+        {/* Carrito */}
+        <Link to="/carrito" className="text-gray-600 hover:text-black">
+          Carrito ({carrito.length})
         </Link>
 
+        {/* Usuario logueado */}
         {usuario ? (
           <>
-            <span className="text-gray-700 font-medium flex items-center gap-1">
-              <FaUser /> Hola, {usuario.nombre?.split(" ")[0] || "Usuario"}
+            <span className="text-gray-700 font-medium">
+              👋 Hola, {usuario.nombre?.split(" ")[0] || "Usuario"}
             </span>
-            <Link to="/mi-perfil" className="text-gray-600 hover:text-black flex items-center gap-1">
+            <Link to="/mi-perfil" className="text-gray-600 hover:text-black">
               Mi perfil
             </Link>
             <button
