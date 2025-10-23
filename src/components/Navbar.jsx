@@ -58,7 +58,7 @@ export default function Navbar() {
             Menú
           </button>
           <div className="absolute right-0 mt-2 w-40 bg-white text-gray-700 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200">
-            <Link to="/perfil" className="block px-4 py-2 hover:bg-gray-100">Mi Perfil</Link>
+            <Link to="/mi-perfil" className="block px-4 py-2 hover:bg-gray-100">Mi Perfil</Link>
             <Link to="/mis-ordenes" className="block px-4 py-2 hover:bg-gray-100">Mis Órdenes</Link>
             <button 
               onClick={handleLogout} 
