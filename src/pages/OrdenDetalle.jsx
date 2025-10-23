@@ -41,30 +41,34 @@ export default function OrdenDetalle() {
   }, [id]);
 
   const descargarPDF = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('No estás autenticada');
-        return;
-      }
-
-      const res = await fetch(`${API_URL}/api/orders/${orden._id}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error('No se pudo generar el PDF');
-
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `orden_${orden._id}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      alert(err.message || 'Error al descargar el PDF');
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No estás autenticada");
+      return;
     }
-  };
+
+    const res = await fetch(`${API_URL}/api/orders/${orden._id}/pdf`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) throw new Error("No se pudo generar el PDF");
+
+    const blob = await res.blob();
+    if (!blob || blob.size === 0) throw new Error("PDF vacío");
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `orden_${orden._id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert(err.message || "Error al descargar el PDF");
+  }
+};
 
   if (loading) return <p className="p-8 text-gray-600">Cargando...</p>;
   if (error) return <p className="text-red-500 p-8">{error}</p>;
