@@ -15,7 +15,7 @@ function ListaPedidos({ usuario }) { // 🔹 recibimos el usuario logueado
   const fetchOrdenes = async () => {
     try {
       const token = localStorage.getItem("token"); // 🔹 enviar token si lo necesitas
-      const res = await fetch(`${API_URL}/orders`, {
+      const res = await fetch(`${API_URL}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Error al obtener órdenes");
@@ -36,7 +36,7 @@ function ListaPedidos({ usuario }) { // 🔹 recibimos el usuario logueado
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/orders/${id}`, {
+      const res = await fetch(`${API_URL}/api/orders/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

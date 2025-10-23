@@ -19,7 +19,7 @@ export default function PanelProductos() {
     const fetchCategorias = async () => {
       try {
         const token = localStorage.getItem("token");
-        const resCategorias = await axios.get(`${API_URL}/categorias`, {
+        const resCategorias = await axios.get(`${API_URL}/api/categorias`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCategorias(resCategorias.data);
@@ -34,7 +34,7 @@ export default function PanelProductos() {
   const fetchProductos = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_URL}/productos`, {
+      const res = await axios.get(`${API_URL}/api/productos`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { page, search },
       });
@@ -61,7 +61,7 @@ export default function PanelProductos() {
     if (!window.confirm("¿Seguro que quieres eliminar este producto?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/productos/${id}`, {
+      await axios.delete(`${API_URL}/api/productos/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRefrescar(prev => !prev);
@@ -74,7 +74,7 @@ export default function PanelProductos() {
   const handleActualizarStock = async (id, cantidad) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.patch(`${API_URL}/productos/${id}/stock`, { cantidad }, {
+      const res = await axios.patch(`${API_URL}/api/productos/${id}/stock`, { cantidad }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProductos(prev => prev.map(p => p._id === id ? res.data.producto : p));

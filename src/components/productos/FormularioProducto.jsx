@@ -43,7 +43,7 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
       let nuevoProducto;
 
       if (enEdicion) {
-        const res = await axios.put(`${API_URL}/productos/${productoEditando._id}`, formData, {
+        const res = await axios.put(`${API_URL}/api/productos/${productoEditando._id}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             "Authorization": `Bearer ${token}`, // 🔹 Enviamos token
@@ -51,7 +51,7 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
         });
         nuevoProducto = res.data;
       } else {
-        const res = await axios.post(`${API_URL}/productos`, formData, {
+        const res = await axios.post(`${API_URL}/api/productos`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             "Authorization": `Bearer ${token}`, // 🔹 Enviamos token
