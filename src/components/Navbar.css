@@ -1,3 +1,26 @@
+/* Navbar.css */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eb2556; /* azul */
+  color: white;
+  padding: 0.75rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
 
 .nav-link {
   color: white;
@@ -60,3 +83,4 @@
     position: relative;
   }
 }
+
