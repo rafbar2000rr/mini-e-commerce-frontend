@@ -20,7 +20,7 @@ export default function Navbar() {
     setMenuOpen(false);
   };
 
-  // ✅ Cerrar menú si se hace clic fuera
+  // ✅ Cerrar menú al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest('.user-menu')) {
@@ -51,7 +51,10 @@ export default function Navbar() {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white text-gray-700 rounded-xl shadow-lg overflow-hidden animate-fadeIn">
+                <div className="absolute right-0 mt-2 w-44 bg-white text-gray-700 rounded-xl shadow-[0_4px_12px_rgba(168,85,247,0.3)] overflow-hidden animate-fadeIn">
+                  {/* Flechita decorativa */}
+                  <div className="absolute right-3 -top-2 w-3 h-3 bg-white rotate-45 shadow-sm"></div>
+
                   <Link
                     to="/perfil"
                     className="block px-4 py-2 hover:bg-violet-100 transition"
