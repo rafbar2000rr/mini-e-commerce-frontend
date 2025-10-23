@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import {Swal} from "sweetalert2";
 
 export default function MiPerfil() {
   const [usuario, setUsuario] = useState({
