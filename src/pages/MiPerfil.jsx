@@ -28,7 +28,7 @@ export default function MiPerfil() {
       }
 
       try {
-        const res = await fetch(`${API_URL}/me`, {
+        const res = await fetch(`${API_URL}/api/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -68,7 +68,7 @@ export default function MiPerfil() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`${API_URL}/actualizar-usuario`, {
+      const res = await fetch(`${API_URL}/api/actualizar-usuario`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

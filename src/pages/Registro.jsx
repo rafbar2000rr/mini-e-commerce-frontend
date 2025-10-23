@@ -29,7 +29,7 @@ function Registro() {
 
     try {
       // 🔹 Enviamos datos al backend
-      const res = await fetch(`${API_URL}/register`, {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, email, password }),
@@ -53,7 +53,7 @@ function Registro() {
       // 🔹 Sincronizar carrito si hay items locales
       const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
       if (carritoLocal.length > 0) {
-        const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
+        const syncRes = await fetch(`${API_URL}/api/carrito/sincronizar`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

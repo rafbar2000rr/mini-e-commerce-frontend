@@ -18,7 +18,7 @@ export default function OrdenDetalle() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/orders/${id}`, {
+        const res = await fetch(`${API_URL}/api/orders/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -48,7 +48,7 @@ export default function OrdenDetalle() {
         return;
       }
 
-      const res = await fetch(`${API_URL}/orders/${orden._id}/pdf`, {
+      const res = await fetch(`${API_URL}/api/orders/${orden._id}/pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

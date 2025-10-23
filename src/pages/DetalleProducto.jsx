@@ -22,7 +22,7 @@ function DetalleProducto() {
     const fetchProducto = async () => {
       try {
         // hacemos la petición al backend para obtener el producto por su id
-        const res = await fetch(`${API_URL}/productos/${id}`);
+        const res = await fetch(`${API_URL}/api/productos/${id}`);
         if (!res.ok) throw new Error("Error al cargar el producto");
 
         // convertimos la respuesta en JSON

@@ -29,7 +29,7 @@ export default function Checkout() {
       }
 
       try {
-        const res = await fetch(`${API_URL}/me`, {
+        const res = await fetch(`${API_URL}/api/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -184,7 +184,7 @@ export default function Checkout() {
                 productoId: p._id || p.id,
                 cantidad: p.cantidad || 1,
               }));
-              const res = await fetch(`${API_URL}/paypal/api/create-order`, {
+              const res = await fetch(`${API_URL}/api/paypal/create-order`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ total, productos, datosCliente: cliente }),
@@ -198,7 +198,7 @@ export default function Checkout() {
                 productoId: p._id || p.id,
                 cantidad: p.cantidad || 1,
               }));
-              const res = await fetch(`${API_URL}/paypal/api/capture-order/${data.orderID}`, {
+              const res = await fetch(`${API_URL}/api/paypal/capture-order/${data.orderID}`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",

@@ -30,7 +30,7 @@ export default function MisOrdenes() {
       }
 
       // 🔹 pedimos órdenes al backend
-      const res = await fetch(`${API_URL}/my-orders`, {
+      const res = await fetch(`${API_URL}/api/my-orders`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,

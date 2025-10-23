@@ -19,7 +19,7 @@ function Catalogo() {
 
   // 🔹 Cargar categorías
   useEffect(() => {
-    fetch(`${API_URL}/categorias`)
+    fetch(`${API_URL}api/categorias`)
       .then((res) => res.json())
       .then((data) => setCategorias(Array.isArray(data) ? data : []))
       .catch(() => setError("Error al cargar categorías"));
@@ -31,7 +31,7 @@ function Catalogo() {
     setError("");
 
     fetch(
-      `${API_URL}/catalogo?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
+      `${API_URL}/api/catalogo?page=${page}&categoria=${categoriaSeleccionada}&search=${busqueda}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -108,7 +108,7 @@ function Catalogo() {
                     className="bg-white border border-gray-200 rounded-2xl shadow-sm transform transition-all duration-300 hover:shadow-lg hover:-translate-y-2 hover:scale-[1.02] flex flex-col h-full overflow-hidden"
                   >
                     <Link
-                      to={`/${producto._id}`}
+                      to={`/producto/${producto._id}`}
                       className="block w-full h-56 overflow-hidden rounded-t-2xl"
                     >
                       <img

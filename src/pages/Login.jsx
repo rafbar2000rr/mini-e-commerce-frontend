@@ -3,7 +3,7 @@ const handleLogin = async (e) => {
   const API_URL = import.meta.env.VITE_API_URL; // ejemplo: https://.../auth
 
   try {
-    const res = await fetch(`${API_URL}/login`, {
+    const res = await fetch(`${API_URL}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -26,7 +26,7 @@ const handleLogin = async (e) => {
     // 🔹 Sincronizar carrito si hay items locales
     const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
     if (carritoLocal.length > 0) {
-      const syncRes = await fetch(`${API_URL}/carrito/sincronizar`, {
+      const syncRes = await fetch(`${API_URL}/api/carrito/sincronizar`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
