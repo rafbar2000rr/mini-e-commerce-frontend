@@ -58,7 +58,7 @@ export default function Navbar() {
                   <div className="absolute right-3 -top-2 w-3 h-3 bg-white rotate-45 shadow-sm"></div>
 
                   <Link
-                    to="/perfil"
+                    to="/mi-perfil"
                     className="block px-4 py-2 hover:bg-violet-100 transition"
                     onClick={() => setMenuOpen(false)}
                   >
