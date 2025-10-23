@@ -31,89 +31,60 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#6D28D9] shadow-md"> {/* ← violeta exacto #6D28D9 */}
-      <nav className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center text-white">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="text-xl font-semibold hover:text-[#C7B3FF] transition-colors"
+    <header className="sticky top-0 z-50 bg-violet-600 hover:bg-violet-500 transition-colors shadow-md">
+  <nav className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center text-white">
+    {/* Logo → inicio */}
+    <div className="navbar-left">
+      <Link 
+        to="/" 
+        className="text-xl font-semibold hover:text-white/80 transition-colors"
+      >
+        Mini E-Commerce
+      </Link>
+    </div>
+
+    {/* Navegación derecha */}
+    <div className="navbar-right flex items-center gap-4">
+      {!token ? (
+        <Link 
+          to="/login" 
+          className="text-sm font-medium hover:text-white/80 transition-colors"
         >
-          Mini E-Commerce
+          Login
         </Link>
-
-        <div className="flex items-center gap-5">
-          {/* Icono Usuario */}
-          {token && (
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuAbierto(!menuAbierto)}
-                className="focus:outline-none"
-              >
-                <FaUserCircle size={26} className="hover:text-[#C7B3FF]" />
-              </button>
-
-              <AnimatePresence>
-                {menuAbierto && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.18 }}
-                    className="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg text-gray-700 py-2"
-                  >
-                    <Link
-                      to="/perfil"
-                      className="block px-4 py-2 hover:bg-[#F3E8FF]"
-                      onClick={() => setMenuAbierto(false)}
-                    >
-                      Mi Perfil
-                    </Link>
-                    <Link
-                      to="/mis-ordenes"
-                      className="block px-4 py-2 hover:bg-[#F3E8FF]"
-                      onClick={() => setMenuAbierto(false)}
-                    >
-                      Mis Órdenes
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setMenuAbierto(false);
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-[#F3E8FF]"
-                    >
-                      Logout
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-
-          {/* Login si no hay sesión */}
-          {!token && (
-            <Link
-              to="/login"
-              className="text-sm font-medium hover:text-[#C7B3FF] transition-colors"
+      ) : (
+        <div className="relative group">
+          <button className="text-sm font-medium hover:text-white/80 transition-colors">
+            Menú
+          </button>
+          <div className="absolute right-0 mt-2 w-40 bg-white text-gray-700 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200">
+            <Link to="/perfil" className="block px-4 py-2 hover:bg-gray-100">Mi Perfil</Link>
+            <Link to="/mis-ordenes" className="block px-4 py-2 hover:bg-gray-100">Mis Órdenes</Link>
+            <button 
+              onClick={handleLogout} 
+              className="w-full text-left px-4 py-2 hover:bg-gray-100"
             >
-              Login
-            </Link>
-          )}
-
-          {/* Carrito */}
-          <Link
-            to="/carrito"
-            className="relative flex items-center bg-[#5B21B6] px-3 py-2 rounded-xl text-sm font-medium hover:bg-[#4C1D95] transition-colors"
-          >
-            <FaShoppingCart size={18} />
-            {carrito.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {carrito.length}
-              </span>
-            )}
-          </Link>
+              Logout
+            </button>
+          </div>
         </div>
-      </nav>
-    </header>
+      )}
+
+      {/* Carrito */}
+      <Link 
+        to="/carrito" 
+        className="relative flex items-center bg-white text-violet-600 px-3 py-2 rounded-xl text-sm font-medium hover:bg-violet-50 transition-colors"
+      >
+        <FaShoppingCart size={18} />
+        {carrito.length > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            {carrito.length}
+          </span>
+        )}
+      </Link>
+    </div>
+  </nav>
+</header>
+
   );
 }
