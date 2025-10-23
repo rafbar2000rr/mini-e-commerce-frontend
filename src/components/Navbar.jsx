@@ -1,84 +1,109 @@
-import { useContext } from 'react';
-import { CarritoContext } from '../context/CarritoContext';
-import { FaShoppingCart } from 'react-icons/fa';
-import { useNavigate, Link } from 'react-router-dom';
-import './Navbar.css';
+import { useContext, useState, useRef, useEffect } from "react";
+import { CarritoContext } from "../context/CarritoContext";
+import { FaShoppingCart, FaUserCircle } from "react-icons/fa";
+import { useNavigate, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
-//---------------------
-//Barra de navegación.
-//---------------------
 export default function Navbar() {
   const { carrito, setCarrito, setUsuario } = useContext(CarritoContext);
   const navigate = useNavigate();
-  const token = localStorage.getItem('token'); // 👈 verificamos sesión
+  const token = localStorage.getItem("token");
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const menuRef = useRef(null);
 
-  // ✅ Cerrar sesión
   const handleLogout = () => {
-    // 🔹 1. Borras el token del localStorage
-    localStorage.removeItem('token');
-    
-    // 🔹 2. Borras el usuario guardado en localStorage
-    localStorage.removeItem('usuario');
-    
-    // 🔹 3. Limpias el estado en memoria (React) → usuario null
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
     setUsuario(null);
-    
-    // 🔹 4. Limpias el carrito en memoria (React) → se pone en []
-    setCarrito([]); 
-    
-    // 🔹 5. También borras cualquier carrito guardado en localStorage
-    localStorage.removeItem("carrito"); 
-    
-    // 🔹 6. Rediriges al usuario a la página de login
-    navigate('/login');
+    setCarrito([]);
+    localStorage.removeItem("carrito");
+    navigate("/login");
   };
 
-  return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
-      <nav className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
-        {/* Logo → inicio */}
-        <div className="navbar-left">
-          <Link 
-            to="/" 
-            className="text-xl font-semibold text-gray-800 hover:text-blue-600 transition-colors"
-          >
-            Mini E-Commerce
-          </Link>
-        </div>
+  useEffect(() => {
+    const handleClickFuera = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuAbierto(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickFuera);
+    return () => document.removeEventListener("mousedown", handleClickFuera);
+  }, []);
 
-        {/* Navegación derecha */}
-        <div className="navbar-right flex items-center gap-4">
-          {/* ✅ Login o Logout según sesión */}
-          {!token ? (
-            <Link 
-              to="/login" 
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              Login
-            </Link>
-          ) : (
-            <button 
-              className="text-sm font-medium text-gray-700 hover:text-red-600 transition-colors"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
+  return (
+    <header className="sticky top-0 z-50 bg-violet-600 shadow-md">
+      <nav className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center text-white">
+        {/* Logo */}
+        <Link
+          to="/"
+          className="text-xl font-semibold hover:text-violet-200 transition-colors"
+        >
+          Mini E-Commerce
+        </Link>
+
+        <div className="flex items-center gap-5">
+          {/* Icono Usuario */}
+          {token && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuAbierto(!menuAbierto)}
+                className="focus:outline-none"
+              >
+                <FaUserCircle size={26} className="hover:text-violet-200" />
+              </button>
+
+              <AnimatePresence>
+                {menuAbierto && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg text-gray-700 py-2"
+                  >
+                    <Link
+                      to="/perfil"
+                      className="block px-4 py-2 hover:bg-violet-100"
+                      onClick={() => setMenuAbierto(false)}
+                    >
+                      Mi Perfil
+                    </Link>
+                    <Link
+                      to="/mis-ordenes"
+                      className="block px-4 py-2 hover:bg-violet-100"
+                      onClick={() => setMenuAbierto(false)}
+                    >
+                      Mis Órdenes
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setMenuAbierto(false);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-violet-100"
+                    >
+                      Logout
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
 
-          {/* Mis Órdenes solo si está logueado */}
-          {token && (
-            <Link 
-              to="/mis-ordenes" 
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+          {/* Login si no hay sesión */}
+          {!token && (
+            <Link
+              to="/login"
+              className="text-sm font-medium hover:text-violet-200 transition-colors"
             >
-              Mis Órdenes
+              Login
             </Link>
           )}
 
           {/* Carrito */}
-          <Link 
-            to="/carrito" 
-            className="relative flex items-center bg-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+          <Link
+            to="/carrito"
+            className="relative flex items-center bg-violet-500 px-3 py-2 rounded-xl text-sm font-medium hover:bg-violet-700 transition-colors"
           >
             <FaShoppingCart size={18} />
             {carrito.length > 0 && (
