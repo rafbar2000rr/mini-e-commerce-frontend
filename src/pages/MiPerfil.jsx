@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export default function MiPerfil() {
   const [usuario, setUsuario] = useState({
@@ -10,12 +12,9 @@ export default function MiPerfil() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-// Asegúrate que sea algo como: https://mini-e-commerce-backend-production.up.railway.app/api/auth
+  const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL;
- // ej: https://mini-e-commerce-backend-production.up.railway.app/auth
   const token = localStorage.getItem("token");
 
   // 🔹 Traer datos del usuario
@@ -39,14 +38,13 @@ export default function MiPerfil() {
         }
 
         const data = await res.json();
-        setUsuario((prev) => ({
-          ...prev,
+        setUsuario({
           nombre: data.nombre || "",
           email: data.email || "",
           direccion: data.direccion || "",
           ciudad: data.ciudad || "",
           codigoPostal: data.codigoPostal || "",
-        }));
+        });
       } catch (err) {
         console.error("❌ Error obteniendo usuario:", err);
         setError("Error conectando con el servidor 💕");
@@ -58,17 +56,16 @@ export default function MiPerfil() {
     fetchUsuario();
   }, []);
 
-  // 🔹 Manejar cambios en inputs
+  // 🔹 Manejar cambios
   const handleChange = (e) => {
     setUsuario({ ...usuario, [e.target.name]: e.target.value });
   };
 
-  // 🔹 Guardar cambios en la base de datos
+  // 🔹 Guardar cambios
   const handleGuardar = async () => {
     setError("");
-    setSuccess("");
     try {
-      const res = await fetch(`${API_URL}/api/actualizar-usuario`, {
+      const res = await fetch(`${API_URL}/api/perfil`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -80,26 +77,40 @@ export default function MiPerfil() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "No se pudo actualizar tu perfil 💕");
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: data.error || "No se pudo actualizar tu perfil 💕",
+          confirmButtonColor: "#a855f7",
+        });
         return;
       }
 
-      setSuccess("Perfil actualizado correctamente 💖");
+      Swal.fire({
+        icon: "success",
+        title: "Perfil actualizado 💖",
+        text: "Tus datos se han guardado correctamente.",
+        confirmButtonColor: "#a855f7",
+      });
     } catch (err) {
       console.error("❌ Error actualizando perfil:", err);
-      setError("Error conectando con el servidor 💕");
+      Swal.fire({
+        icon: "error",
+        title: "Error 💕",
+        text: "Error conectando con el servidor.",
+        confirmButtonColor: "#a855f7",
+      });
     }
   };
 
-  if (loading) return <p className="text-gray-500 text-center mt-10">Cargando perfil...</p>;
-  if (error && !usuario.nombre) return <p className="text-red-500 text-center mt-10">{error}</p>;
+  if (loading)
+    return <p className="text-gray-500 text-center mt-10">Cargando perfil...</p>;
+  if (error && !usuario.nombre)
+    return <p className="text-red-500 text-center mt-10">{error}</p>;
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-purple-700">Mi Perfil</h1>
-
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      {success && <p className="text-green-500 mb-2">{success}</p>}
 
       <div className="space-y-3">
         <input
@@ -149,6 +160,14 @@ export default function MiPerfil() {
         className="mt-4 w-full bg-purple-600 text-white p-3 rounded-lg hover:bg-purple-700 transition-colors"
       >
         Guardar cambios
+      </button>
+
+      {/* 💜 Botón de volver al catálogo */}
+      <button
+        onClick={() => navigate("/")}
+        className="mt-3 w-full bg-purple-100 text-purple-700 p-3 rounded-lg hover:bg-purple-200 font-medium transition-colors"
+      >
+        ← Volver al Catálogo
       </button>
     </div>
   );
