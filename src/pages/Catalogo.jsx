@@ -19,7 +19,7 @@ function Catalogo() {
 
   // 🔹 Cargar categorías
   useEffect(() => {
-    fetch(`${API_URL}api/categorias`)
+    fetch(`${API_URL}/api/categorias`)
       .then((res) => res.json())
       .then((data) => setCategorias(Array.isArray(data) ? data : []))
       .catch(() => setError("Error al cargar categorías"));
