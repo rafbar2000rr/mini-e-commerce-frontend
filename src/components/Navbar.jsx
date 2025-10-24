@@ -6,19 +6,30 @@ import { Link, useNavigate } from 'react-router-dom';
 export default function Navbar() {
   const { carrito, setCarrito, setUsuario } = useContext(CarritoContext);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [nombreUsuario, setNombreUsuario] = useState('');
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
+  // 💜 Al montar, obtener nombre del usuario
+  useEffect(() => {
+    const usuarioGuardado = localStorage.getItem('usuario');
+    if (usuarioGuardado) {
+      try {
+        const userData = JSON.parse(usuarioGuardado);
+        setNombreUsuario(userData.nombre || ''); // por si acaso
+      } catch (error) {
+        console.error('Error al parsear usuario:', error);
+      }
+    }
+  }, []);
+
   // ✅ Cerrar sesión
   const handleLogout = () => {
-    // Borrar todo lo relacionado al usuario
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     localStorage.removeItem('carrito');
     setUsuario(null);
     setCarrito([]);
-
-    // Cerrar el menú y redirigir al catálogo
     setMenuOpen(false);
     navigate('/catalogo');
   };
@@ -45,7 +56,11 @@ export default function Navbar() {
         <div className="flex items-center gap-4 relative">
           {/* Menú de usuario si hay sesión */}
           {token ? (
-            <div className="relative user-menu">
+            <div className="relative user-menu flex items-center gap-2">
+              <span className="hidden sm:inline text-sm font-medium">
+                Hola, {nombreUsuario || 'Alexia'}
+              </span>
+
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex items-center gap-2 hover:opacity-90 focus:outline-none"
