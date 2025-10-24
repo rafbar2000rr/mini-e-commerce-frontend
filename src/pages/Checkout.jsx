@@ -171,7 +171,7 @@ export default function Checkout() {
               </button>
 
               <p className="text-sm text-gray-500">
-                Estos cambios aplicarán solo para esta compra. Para actualizar tu perfil, ve a <a href="/perfil" className="text-pink-600 underline">Mi Perfil</a>.
+                Estos cambios aplicarán solo para esta compra. Para actualizar tu perfil, ve a <a href="/mi-perfil" className="text-pink-600 underline">Mi Perfil</a>.
               </p>
             </>
           )}
