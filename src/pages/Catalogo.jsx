@@ -111,11 +111,17 @@ function Catalogo() {
                       to={`/producto/${producto._id}`}
                       className="block w-full h-56 overflow-hidden rounded-t-2xl"
                     >
-                      <img
+                      {/* <img
                         src={`${API_URL.replace('/api','')}/uploads/${producto.imagen}`}
                         alt={producto.nombre}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                      /> */}
+                      <img
+                        src={producto.imagen || "/placeholder.png"} // Si no hay imagen, poner un placeholder
+                        alt={producto.nombre}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                       />
+
                     </Link>
 
                     <div className="p-4 flex flex-col flex-1">
