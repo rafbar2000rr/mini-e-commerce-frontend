@@ -37,24 +37,24 @@ export function CarritoProvider({ children }) {
       transports: ["websocket"],
       autoConnect: true,
     });
-
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
       console.log("✅ Conectado al backend con Socket.io. ID:", newSocket.id);
-      // Entrar a su room si hay usuario
+      alert("✅ Conectado al backend con Socket.io. ID: " + newSocket.id);
       if (usuario?._id) newSocket.emit("join", usuario._id);
     });
 
     newSocket.on("connect_error", (err) => {
       console.log("❌ Error de conexión:", err.message);
+      alert("❌ Error de conexión: " + err.message);
     });
 
     return () => newSocket.disconnect();
   }, []);
 
   //-------------------------------------------------------------
-  // 🔹 Unirse a la room del usuario y escuchar cambios
+  // 🔹 Unirse a la room y escuchar carrito en tiempo real
   //-------------------------------------------------------------
   useEffect(() => {
     if (!socket || !usuario?._id) return;
@@ -84,46 +84,21 @@ export function CarritoProvider({ children }) {
       }
     };
 
-    // Escuchar cambios en tiempo real solo para este usuario
+    // Escuchar eventos en tiempo real
     socket.on(`carrito:${usuario._id}`, actualizarCarrito);
 
+    // Cargar carrito al iniciar sesión
+    actualizarCarrito();
+
     return () => socket.off(`carrito:${usuario._id}`, actualizarCarrito);
-  }, [socket, usuario?._id]);
+  }, [socket, usuario]);
 
   //-------------------------------------------------------------
-  // 🔹 Guardar carrito en localStorage
+  // 🔹 Guardar carrito en localStorage cada vez que cambia
   //-------------------------------------------------------------
   useEffect(() => {
     localStorage.setItem("carrito", JSON.stringify(carrito));
   }, [carrito]);
-
-  //-------------------------------------------------------------
-  // 🔹 Cargar carrito al iniciar sesión
-  //-------------------------------------------------------------
-  useEffect(() => {
-    const cargarCarrito = async () => {
-      if (!usuario?.token) return;
-      try {
-        const res = await fetch(`${API_URL}/api/carrito`, {
-          headers: { Authorization: `Bearer ${usuario.token}` },
-        });
-        const data = await res.json();
-        const carritoMapeado = data.map((item) => ({
-          _id: item.productoId._id,
-          nombre: item.productoId.nombre,
-          precio: item.productoId.precio,
-          descripcion: item.productoId.descripcion,
-          imagen: item.productoId.imagen,
-          cantidad: item.cantidad,
-        }));
-        setCarrito(carritoMapeado);
-        localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
-      } catch (err) {
-        console.error("⚠️ Error cargando carrito:", err);
-      }
-    };
-    cargarCarrito();
-  }, [usuario?.token]);
 
   //-------------------------------------------------------------
   // 🔹 Emitir evento de actualización
