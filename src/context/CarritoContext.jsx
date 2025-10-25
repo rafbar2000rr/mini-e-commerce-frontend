@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useContext } from "react";
+import { io } from "socket.io-client";
 
 //-------------------------------------------------------------
 // ✅ Creamos el contexto del carrito
@@ -33,6 +34,40 @@ export function CarritoProvider({ children }) {
   const API_URL = import.meta.env.VITE_API_URL;
 
   //-------------------------------------------------------------
+  // 🔹 Conexión a Socket.io
+  //-------------------------------------------------------------
+  useEffect(() => {
+    if (!usuario?.token) return;
+
+    const socket = io(API_URL);
+
+    // Escuchar cambios en el carrito para este usuario
+    socket.on(`carrito:${usuario._id}`, async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/carrito`, {
+          headers: { Authorization: `Bearer ${usuario.token}` },
+        });
+        const data = res.ok ? await res.json() : [];
+        setCarrito(data.map((item) => ({
+          _id: item.productoId._id,
+          nombre: item.productoId.nombre,
+          precio: item.productoId.precio,
+          descripcion: item.productoId.descripcion,
+          imagen: item.productoId.imagen,
+          cantidad: item.cantidad,
+        })));
+        localStorage.setItem("carrito", JSON.stringify(data));
+      } catch (error) {
+        console.error("❌ Error al sincronizar carrito desde socket:", error);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [usuario?.token]);
+
+  //-------------------------------------------------------------
   // 🔹 Guardar carrito en localStorage
   //-------------------------------------------------------------
   useEffect(() => {
@@ -40,45 +75,66 @@ export function CarritoProvider({ children }) {
   }, [carrito]);
 
   //-------------------------------------------------------------
-  // 🔹 Resincronizar carrito al iniciar sesión o refrescar la app
+  // 🔹 Recuperar o sincronizar carrito desde el backend al loguearse
   //-------------------------------------------------------------
   useEffect(() => {
-    const resincronizarCarrito = async () => {
+    const fetchCarrito = async () => {
       if (!usuario?.token) return;
 
       try {
-        // Llamamos al endpoint de sincronización pasando el carrito local
-        const res = await fetch(`${API_URL}/api/carrito/sincronizar`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${usuario.token}`,
-          },
-          body: JSON.stringify({ carritoLocal: carrito }),
+        const res = await fetch(`${API_URL}/api/carrito`, {
+          headers: { Authorization: `Bearer ${usuario.token}` },
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          // Transformar a formato frontend
-          const carritoActualizado = (data || []).map((item) => ({
-            _id: item.productoId._id,
-            nombre: item.productoId.nombre,
-            precio: item.productoId.precio,
-            descripcion: item.productoId.descripcion,
-            imagen: item.productoId.imagen,
-            cantidad: item.cantidad,
-          }));
+        const data = res.ok ? await res.json() : [];
+        const carritoBackend = (data || []).map((item) => ({
+          _id: item.productoId._id,
+          nombre: item.productoId.nombre,
+          precio: item.productoId.precio,
+          descripcion: item.productoId.descripcion,
+          imagen: item.productoId.imagen,
+          cantidad: item.cantidad,
+        }));
 
-          setCarrito(carritoActualizado);
-          localStorage.setItem("carrito", JSON.stringify(carritoActualizado));
+        // 🧩 Fusionar carrito local y backend
+        const carritoFusionado = [...carritoBackend];
+
+        carrito.forEach((localProd) => {
+          const existente = carritoFusionado.find(
+            (p) => p._id === localProd._id
+          );
+          if (existente) {
+            existente.cantidad += localProd.cantidad;
+          } else {
+            carritoFusionado.push(localProd);
+          }
+        });
+
+        // 🔄 Actualizar backend si hubo productos locales nuevos
+        for (const prod of carritoFusionado) {
+          await fetch(`${API_URL}/api/carrito`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${usuario.token}`,
+            },
+            body: JSON.stringify({
+              productoId: prod._id,
+              cantidad: prod.cantidad,
+            }),
+          });
         }
+
+        // ✅ Actualizar estado con el carrito fusionado
+        setCarrito(carritoFusionado);
+        localStorage.setItem("carrito", JSON.stringify(carritoFusionado));
       } catch (error) {
-        console.error("❌ Error al resincronizar carrito:", error);
+        console.error("Error al recuperar el carrito:", error);
       }
     };
 
-    resincronizarCarrito();
-  }, [usuario?.token]); // se ejecuta al iniciar sesión o cambiar usuario
+    fetchCarrito();
+  }, [usuario?.token]);
 
   //-------------------------------------------------------------
   // 🔹 Agregar producto al carrito
@@ -98,7 +154,6 @@ export function CarritoProvider({ children }) {
           )
         : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
 
-      // 💾 Guarda en localStorage si no hay usuario logueado
       if (!usuario?.token) {
         localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
       }
@@ -106,7 +161,7 @@ export function CarritoProvider({ children }) {
       return nuevoCarrito;
     });
 
-    // 🔐 Si está logueado, también lo guarda en el backend
+    // 🔐 Guardar en backend y emitir evento socket
     if (usuario?.token) {
       try {
         await fetch(`${API_URL}/api/carrito`, {
@@ -117,6 +172,10 @@ export function CarritoProvider({ children }) {
           },
           body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
         });
+
+        const socket = io(API_URL);
+        socket.emit("carrito:update", usuario._id);
+        socket.disconnect();
       } catch (error) {
         console.error("❌ Error agregando al carrito:", error);
       }
@@ -135,6 +194,9 @@ export function CarritoProvider({ children }) {
           method: "DELETE",
           headers: { Authorization: `Bearer ${usuario.token}` },
         });
+        const socket = io(API_URL);
+        socket.emit("carrito:update", usuario._id);
+        socket.disconnect();
       } catch (error) {
         console.error("❌ Error al eliminar producto:", error);
       }
@@ -154,6 +216,9 @@ export function CarritoProvider({ children }) {
           method: "DELETE",
           headers: { Authorization: `Bearer ${usuario.token}` },
         });
+        const socket = io(API_URL);
+        socket.emit("carrito:update", usuario._id);
+        socket.disconnect();
       } catch (error) {
         console.error("❌ Error al vaciar carrito:", error);
       }
@@ -187,6 +252,9 @@ export function CarritoProvider({ children }) {
           },
           body: JSON.stringify({ cantidad: nuevaCantidad }),
         });
+        const socket = io(API_URL);
+        socket.emit("carrito:update", usuario._id);
+        socket.disconnect();
       } catch (error) {
         console.error("❌ Error al actualizar cantidad:", error);
       }
