@@ -45,6 +45,10 @@ export function CarritoProvider({ children }) {
       console.log("❌ Error de conexión:", err.message);
       alert("❌ Error de conexión: " + err.message);
     });
+    socket.on("connect", () => {
+    console.log("🔌 Conectado a Socket.io con ID:", socket.id);
+    alert("🔌 Conectado a Socket.io con ID: " + socket.id);
+});
 
     return () => newSocket.disconnect();
   }, []);
