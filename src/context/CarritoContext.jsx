@@ -29,30 +29,25 @@ export function CarritoProvider({ children }) {
   // 🔹 Inicializar socket
   //-------------------------------------------------------------
   useEffect(() => {
-    const newSocket = io(API_URL, {
-      transports: ["websocket"],
-      autoConnect: true,
-    });
-
+    const newSocket = io(API_URL, { transports: ["websocket"] });
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
-      console.log("✅ Conectado al backend con Socket.io. ID:", newSocket.id);
+      console.log("✅ Socket conectado ID:", newSocket.id);
       if (usuario?._id) newSocket.emit("join", usuario._id);
     });
 
-    newSocket.on("connect_error", (err) => {
-      console.log("❌ Error de conexión:", err.message);
-    });
+    newSocket.on("connect_error", (err) => console.error("❌ Error socket:", err.message));
 
     return () => newSocket.disconnect();
   }, []);
 
   //-------------------------------------------------------------
-  // 🔹 Unirse a la room del usuario y escuchar cambios
+  // 🔹 Escuchar actualizaciones del carrito
   //-------------------------------------------------------------
   useEffect(() => {
     if (socket && usuario?._id) {
+      // Entrar a la room del usuario
       socket.emit("join", usuario._id);
 
       const actualizarCarrito = async () => {
@@ -71,16 +66,16 @@ export function CarritoProvider({ children }) {
               cantidad: item.cantidad,
             }));
             setCarrito(carritoMapeado);
-            localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
           }
         } catch (err) {
-          console.error("⚠️ Error actualizando carrito:", err);
+          console.error("⚠️ Error cargando carrito:", err);
         }
       };
 
+      // Escuchar cambios desde el servidor
       socket.on(`carrito:${usuario._id}`, actualizarCarrito);
 
-      // Cargar al iniciar sesión
+      // Cargar carrito al unirse
       actualizarCarrito();
 
       return () => socket.off(`carrito:${usuario._id}`, actualizarCarrito);
@@ -88,24 +83,14 @@ export function CarritoProvider({ children }) {
   }, [socket, usuario?._id]);
 
   //-------------------------------------------------------------
-  // 🔹 Guardar carrito en localStorage
-  //-------------------------------------------------------------
-  useEffect(() => {
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-  }, [carrito]);
-
-  //-------------------------------------------------------------
-  // 🔹 Emitir evento de actualización
+  // 🔹 Funciones de carrito
   //-------------------------------------------------------------
   const emitirCambio = () => {
     if (socket && usuario?._id) socket.emit("carrito:update", usuario._id);
   };
 
-  //-------------------------------------------------------------
-  // 🔹 Funciones de carrito
-  //-------------------------------------------------------------
   const agregarAlCarrito = async (producto) => {
-    if (!producto || !producto._id) return;
+    if (!producto?._id) return;
     const productoIdStr = producto._id.toString();
 
     setCarrito((prev) => {
@@ -116,46 +101,24 @@ export function CarritoProvider({ children }) {
     });
 
     if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/api/carrito`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
-          body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
-        });
-        emitirCambio();
-      } catch (err) {
-        console.error("⚠️ Error agregando al carrito:", err);
-      }
+      await fetch(`${API_URL}/api/carrito`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
+        body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
+      });
+      emitirCambio();
     }
   };
 
   const eliminarDelCarrito = async (id) => {
     setCarrito((prev) => prev.filter((p) => p._id?.toString() !== id.toString()));
-    if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/api/carrito/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${usuario.token}` },
-        });
-        emitirCambio();
-      } catch (err) {
-        console.error("⚠️ Error eliminando producto:", err);
-      }
-    }
-  };
 
-  const vaciarCarrito = async () => {
-    setCarrito([]);
     if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/api/carrito`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${usuario.token}` },
-        });
-        emitirCambio();
-      } catch (err) {
-        console.error("⚠️ Error vaciando carrito:", err);
-      }
+      await fetch(`${API_URL}/api/carrito/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${usuario.token}` },
+      });
+      emitirCambio();
     }
   };
 
@@ -167,16 +130,23 @@ export function CarritoProvider({ children }) {
     );
 
     if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/api/carrito/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
-          body: JSON.stringify({ cantidad: nuevaCantidad }),
-        });
-        emitirCambio();
-      } catch (err) {
-        console.error("⚠️ Error actualizando cantidad:", err);
-      }
+      await fetch(`${API_URL}/api/carrito/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
+        body: JSON.stringify({ cantidad: nuevaCantidad }),
+      });
+      emitirCambio();
+    }
+  };
+
+  const vaciarCarrito = async () => {
+    setCarrito([]);
+    if (usuario?.token) {
+      await fetch(`${API_URL}/api/carrito`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${usuario.token}` },
+      });
+      emitirCambio();
     }
   };
 
