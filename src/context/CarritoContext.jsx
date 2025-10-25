@@ -6,13 +6,11 @@ import { createContext, useState, useEffect, useContext } from "react";
 export const CarritoContext = createContext();
 
 //-------------------------------------------------------------
-// ✅ Hook personalizado para acceder fácilmente al carrito
+// ✅ Hook personalizado
 //-------------------------------------------------------------
 export function useCarrito() {
   const context = useContext(CarritoContext);
-  if (!context) {
-    throw new Error("useCarrito debe usarse dentro de un <CarritoProvider>");
-  }
+  if (!context) throw new Error("useCarrito debe usarse dentro de un <CarritoProvider>");
   return context;
 }
 
@@ -40,22 +38,25 @@ export function CarritoProvider({ children }) {
   }, [carrito]);
 
   //-------------------------------------------------------------
-  // 🔹 Recuperar y sincronizar carrito desde el backend al loguearse
+  // 🔹 Sincronizar carrito al iniciar sesión
   //-------------------------------------------------------------
   useEffect(() => {
-    const fetchCarrito = async () => {
+    const sincronizarCarrito = async () => {
       if (!usuario?.token) return;
 
       try {
-        // 1️⃣ Traer carrito desde el backend
-        const res = await fetch(`${API_URL}/api/carrito`, {
-          headers: { Authorization: `Bearer ${usuario.token}` },
+        const res = await fetch(`${API_URL}/api/carrito/sincronizar`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${usuario.token}`,
+          },
+          body: JSON.stringify({ carritoLocal: carrito }),
         });
 
-        let carritoBackend = [];
         if (res.ok) {
           const data = await res.json();
-          carritoBackend = (data || []).map((item) => ({
+          const carritoNormalizado = data.map(item => ({
             _id: item.productoId._id,
             nombre: item.productoId.nombre,
             precio: item.productoId.precio,
@@ -63,73 +64,39 @@ export function CarritoProvider({ children }) {
             imagen: item.productoId.imagen,
             cantidad: item.cantidad,
           }));
+          setCarrito(carritoNormalizado);
+          localStorage.setItem("carrito", JSON.stringify(carritoNormalizado));
         }
-
-        // 2️⃣ Fusionar con productos en localStorage
-        const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
-        const mapa = new Map();
-
-        carritoBackend.forEach((p) => mapa.set(p._id, { ...p }));
-        carritoLocal.forEach((p) => {
-          if (mapa.has(p._id)) {
-            mapa.get(p._id).cantidad += p.cantidad;
-          } else {
-            mapa.set(p._id, { ...p });
-          }
-        });
-
-        const carritoFusionado = Array.from(mapa.values());
-
-        // 3️⃣ Actualizar estado y localStorage
-        setCarrito(carritoFusionado);
-        localStorage.setItem("carrito", JSON.stringify(carritoFusionado));
-
-        // 4️⃣ Enviar al backend cualquier producto que estaba solo en localStorage
-        for (const prod of carritoFusionado) {
-          await fetch(`${API_URL}/api/carrito`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${usuario.token}`,
-            },
-            body: JSON.stringify({ productoId: prod._id, cantidad: prod.cantidad }),
-          });
-        }
-      } catch (error) {
-        console.error("❌ Error al recuperar el carrito:", error);
+      } catch (err) {
+        console.error("❌ Error al sincronizar carrito:", err);
       }
     };
 
-    fetchCarrito();
+    sincronizarCarrito();
   }, [usuario?.token]);
 
   //-------------------------------------------------------------
-  // 🔹 Agregar producto al carrito
+  // 🔹 Agregar producto
   //-------------------------------------------------------------
   const agregarAlCarrito = async (producto) => {
-    if (!producto || !producto._id) return;
+    if (!producto?._id) return;
     const productoIdStr = producto._id.toString();
 
-    // 🛒 Actualiza el estado local
-    setCarrito((prev) => {
-      const existe = prev.find((p) => p._id === productoIdStr);
+    setCarrito(prev => {
+      const existe = prev.find(p => p._id === productoIdStr);
       const nuevoCarrito = existe
-        ? prev.map((p) =>
+        ? prev.map(p =>
             p._id === productoIdStr
               ? { ...p, cantidad: (p.cantidad || 1) + 1 }
               : p
           )
         : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
 
-      // 💾 Guarda en localStorage si no hay usuario logueado
-      if (!usuario?.token) {
-        localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
-      }
+      if (!usuario?.token) localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
 
       return nuevoCarrito;
     });
 
-    // 🔐 Si está logueado, también lo guarda en el backend
     if (usuario?.token) {
       try {
         await fetch(`${API_URL}/api/carrito`, {
@@ -140,84 +107,65 @@ export function CarritoProvider({ children }) {
           },
           body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
         });
-      } catch (error) {
-        console.error("❌ Error agregando al carrito:", error);
+      } catch (err) {
+        console.error("❌ Error agregando al carrito:", err);
       }
     }
   };
 
   //-------------------------------------------------------------
-  // 🔹 Eliminar producto del carrito
+  // 🔹 Eliminar producto
   //-------------------------------------------------------------
   const eliminarDelCarrito = async (id) => {
-    setCarrito((prev) => prev.filter((p) => p._id?.toString() !== id.toString()));
-
+    setCarrito(prev => prev.filter(p => p._id !== id));
     if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/api/carrito/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${usuario.token}` },
-        });
-      } catch (error) {
-        console.error("❌ Error al eliminar producto:", error);
-      }
+      await fetch(`${API_URL}/api/carrito/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${usuario.token}` },
+      });
     }
   };
 
   //-------------------------------------------------------------
-  // 🔹 Vaciar carrito completo
+  // 🔹 Vaciar carrito
   //-------------------------------------------------------------
   const vaciarCarrito = async () => {
     setCarrito([]);
     localStorage.removeItem("carrito");
-
     if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/api/carrito`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${usuario.token}` },
-        });
-      } catch (error) {
-        console.error("❌ Error al vaciar carrito:", error);
-      }
+      await fetch(`${API_URL}/api/carrito`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${usuario.token}` },
+      });
     }
   };
 
   //-------------------------------------------------------------
   // 🔹 Actualizar cantidad
   //-------------------------------------------------------------
-  const actualizarCantidad = async (id, nuevaCantidad) => {
-    if (nuevaCantidad < 1) {
+  const actualizarCantidad = async (id, cantidad) => {
+    if (cantidad < 1) {
       eliminarDelCarrito(id);
       return;
     }
-
-    setCarrito((prev) =>
-      prev.map((p) =>
-        p._id?.toString() === id.toString()
-          ? { ...p, cantidad: nuevaCantidad }
-          : p
-      )
+    setCarrito(prev =>
+      prev.map(p => (p._id === id ? { ...p, cantidad } : p))
     );
 
     if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/api/carrito/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${usuario.token}`,
-          },
-          body: JSON.stringify({ cantidad: nuevaCantidad }),
-        });
-      } catch (error) {
-        console.error("❌ Error al actualizar cantidad:", error);
-      }
+      await fetch(`${API_URL}/api/carrito/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${usuario.token}`,
+        },
+        body: JSON.stringify({ cantidad }),
+      });
     }
   };
 
   //-------------------------------------------------------------
-  // 🔹 Proveer contexto a toda la app
+  // 🔹 Proveer contexto
   //-------------------------------------------------------------
   return (
     <CarritoContext.Provider
