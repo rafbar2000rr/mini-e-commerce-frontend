@@ -46,7 +46,7 @@ export function CarritoProvider({ children }) {
     const fetchCarrito = async () => {
       if (usuario?.token) {
         try {
-          const res = await fetch(`${API_URL}/carrito`, {
+          const res = await fetch(`${API_URL}/api/carrito`, {
             headers: { Authorization: `Bearer ${usuario.token}` },
           });
 
@@ -63,7 +63,7 @@ export function CarritoProvider({ children }) {
 
             if (carritoNormalizado.length === 0 && carrito.length > 0) {
               for (const prod of carrito) {
-                await fetch(`${API_URL}/carrito`, {
+                await fetch(`${API_URL}/api/carrito`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -116,7 +116,7 @@ export function CarritoProvider({ children }) {
   // 🔐 Si está logueado, también lo guarda en el backend
   if (usuario?.token) {
     try {
-      await fetch(`${API_URL}/carrito`, {
+      await fetch(`${API_URL}/api/carrito`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +138,7 @@ export function CarritoProvider({ children }) {
 
     if (usuario?.token) {
       try {
-        await fetch(`${API_URL}/carrito/${id}`, {
+        await fetch(`${API_URL}/api/carrito/${id}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${usuario.token}` },
         });
@@ -157,7 +157,7 @@ export function CarritoProvider({ children }) {
 
     if (usuario?.token) {
       try {
-        await fetch(`${API_URL}/carrito`, {
+        await fetch(`${API_URL}/api/carrito`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${usuario.token}` },
         });
@@ -186,7 +186,7 @@ export function CarritoProvider({ children }) {
 
     if (usuario?.token) {
       try {
-        await fetch(`${API_URL}/carrito/${id}`, {
+        await fetch(`${API_URL}/api/carrito/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

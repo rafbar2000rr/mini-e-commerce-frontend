@@ -50,11 +50,15 @@ export default function Login() {
             },
             body: JSON.stringify({ carritoLocal }),
           });
+    
 
           if (syncRes.ok) {
             const carritoFinal = await syncRes.json();
             localStorage.setItem("carrito", JSON.stringify(carritoFinal));
+            console.log("Carrito final recibido:", carritoFinal);
           }
+          
+
         }
 
         // ✅ Guardar usuario en contexto
