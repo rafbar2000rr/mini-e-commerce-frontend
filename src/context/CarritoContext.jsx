@@ -30,31 +30,38 @@ export function CarritoProvider({ children }) {
   const [socket, setSocket] = useState(null);
 
   //-------------------------------------------------------------
-  // 🔹 Inicializar socket
+  // 🔹 Inicializar socket con reconexión automática
   //-------------------------------------------------------------
   useEffect(() => {
     const newSocket = io(API_URL, {
       transports: ["websocket"],
       autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
+
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
-      console.log("✅ Conectado al backend con Socket.io. ID:", newSocket.id);
-      alert("✅ Conectado al backend con Socket.io. ID: " + newSocket.id);
+      console.log("✅ Socket conectado:", newSocket.id);
       if (usuario?._id) newSocket.emit("join", usuario._id);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("🔴 Socket desconectado:", reason);
     });
 
     newSocket.on("connect_error", (err) => {
       console.log("❌ Error de conexión:", err.message);
-      alert("❌ Error de conexión: " + err.message);
     });
 
     return () => newSocket.disconnect();
   }, []);
 
   //-------------------------------------------------------------
-  // 🔹 Unirse a la room y escuchar carrito en tiempo real
+  // 🔹 Escuchar carrito en tiempo real y cargarlo al iniciar sesión
   //-------------------------------------------------------------
   useEffect(() => {
     if (!socket || !usuario?._id) return;
@@ -84,10 +91,9 @@ export function CarritoProvider({ children }) {
       }
     };
 
-    // Escuchar eventos en tiempo real
     socket.on(`carrito:${usuario._id}`, actualizarCarrito);
 
-    // Cargar carrito al iniciar sesión
+    // Cargar carrito la primera vez
     actualizarCarrito();
 
     return () => socket.off(`carrito:${usuario._id}`, actualizarCarrito);
