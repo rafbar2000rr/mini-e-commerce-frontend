@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext, useRef } from "react";
 import { io } from "socket.io-client";
 
 //-------------------------------------------------------------
@@ -29,25 +29,27 @@ export function CarritoProvider({ children }) {
   const API_URL = import.meta.env.VITE_API_URL;
 
   // -------------------------------------------------------------
-  // 🔹 Inicializar socket directamente (ya no con useState)
+  // 🔹 Referencia al socket (solo 1 conexión)
   // -------------------------------------------------------------
-  const socket = io(API_URL, {
-    transports: ["websocket"],
-    autoConnect: true,
-  });
+  const socketRef = useRef(null);
 
   //-------------------------------------------------------------
-  // 🔹 Conexión de socket
+  // 🔹 Inicializar Socket.io
   //-------------------------------------------------------------
   useEffect(() => {
+    socketRef.current = io(API_URL, {
+      transports: ["websocket"],
+      autoConnect: true,
+    });
+
+    const socket = socketRef.current;
+
     socket.on("connect", () => {
       console.log("✅ Conectado al backend con Socket.io. ID:", socket.id);
-      alert("✅ Conectado al backend con Socket.io. ID: " + socket.id);
     });
 
     socket.on("connect_error", (err) => {
       console.log("❌ Error de conexión:", err.message);
-      alert("❌ Error de conexión: " + err.message);
     });
 
     return () => socket.disconnect();
@@ -57,7 +59,9 @@ export function CarritoProvider({ children }) {
   // 🔹 Escuchar carrito en tiempo real
   //-------------------------------------------------------------
   useEffect(() => {
-    if (!usuario?._id) return;
+    if (!usuario?._id || !socketRef.current) return;
+
+    const socket = socketRef.current;
 
     const actualizarCarrito = async () => {
       try {
@@ -125,7 +129,8 @@ export function CarritoProvider({ children }) {
   // 🔹 Emitir evento de actualización
   //-------------------------------------------------------------
   const emitirCambio = () => {
-    if (usuario?._id) socket.emit("carrito:update", usuario._id);
+    if (usuario?._id && socketRef.current)
+      socketRef.current.emit("carrito:update", usuario._id);
   };
 
   //-------------------------------------------------------------
@@ -151,7 +156,10 @@ export function CarritoProvider({ children }) {
       try {
         await fetch(`${API_URL}/api/carrito`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${usuario.token}`,
+          },
           body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
         });
         emitirCambio();
