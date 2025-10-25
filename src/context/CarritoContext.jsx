@@ -40,9 +40,26 @@ export function CarritoProvider({ children }) {
   useEffect(() => {
     const newSocket = io(API_URL);
     setSocket(newSocket);
+    console.log("Socket conectado?", newSocket.connected);
+    newSocket.on("connect", () => {
+    console.log("✅ Conectado al backend");
+    alert("✅ Conectado al backend"); // <-- para verlo en el celular
+    });
+
+    newSocket.on("connect_error", (err) => {
+    console.log("❌ Error:", err.message);
+    alert("❌ Error de conexión: " + err.message); // <-- alerta visible
+  });
+
+
     return () => newSocket.disconnect();
   }, []);
 
+
+  
+
+
+  
   //-------------------------------------------------------------
   // 🔹 Escuchar carrito en tiempo real
   //-------------------------------------------------------------
