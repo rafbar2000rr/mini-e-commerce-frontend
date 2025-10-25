@@ -20,6 +20,9 @@ export function useCarrito() {
 // ✅ Proveedor del carrito
 //-------------------------------------------------------------
 export function CarritoProvider({ children }) {
+  //-------------------------------------------------------------
+  // 🔹 Estado del carrito y del usuario
+  //-------------------------------------------------------------
   const [carrito, setCarrito] = useState(() => {
     const guardado = localStorage.getItem("carrito");
     return guardado ? JSON.parse(guardado) : [];
@@ -40,65 +43,43 @@ export function CarritoProvider({ children }) {
   }, [carrito]);
 
   //-------------------------------------------------------------
-  // 🔹 Recuperar o sincronizar carrito desde el backend al loguearse
+  // 🔹 Sincronizar carrito con backend al iniciar sesión
   //-------------------------------------------------------------
   useEffect(() => {
-    const fetchCarrito = async () => {
-      if (!usuario?.token) return;
+    const sincronizarCarrito = async () => {
+      if (!usuario?.token || carrito.length === 0) return;
 
       try {
-        const res = await fetch(`${API_URL}/api/carrito`, {
-          headers: { Authorization: `Bearer ${usuario.token}` },
+        const res = await fetch(`${API_URL}/api/carrito/sincronizar`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${usuario.token}`,
+          },
+          body: JSON.stringify({ carritoLocal: carrito }),
         });
 
-        const data = res.ok ? await res.json() : [];
-        const carritoBackend = (data?.productos || []).map((item) => ({
-          _id: item.productoId._id,
-          nombre: item.productoId.nombre,
-          precio: item.productoId.precio,
-          descripcion: item.productoId.descripcion,
-          imagen: item.productoId.imagen,
-          cantidad: item.cantidad,
-        }));
+        if (res.ok) {
+          const data = await res.json();
+          const carritoNormalizado = (data || []).map((item) => ({
+            _id: item.productoId._id,
+            nombre: item.productoId.nombre,
+            precio: item.productoId.precio,
+            descripcion: item.productoId.descripcion,
+            imagen: item.productoId.imagen,
+            cantidad: item.cantidad,
+          }));
 
-        // 🧩 Fusionar carrito local y backend
-        const carritoFusionado = [...carritoBackend];
-
-        carrito.forEach((localProd) => {
-          const existente = carritoFusionado.find(
-            (p) => p._id === localProd._id
-          );
-          if (existente) {
-            existente.cantidad += localProd.cantidad;
-          } else {
-            carritoFusionado.push(localProd);
-          }
-        });
-
-        // 🔄 Actualizar backend si hubo productos locales nuevos
-        for (const prod of carritoFusionado) {
-          await fetch(`${API_URL}/api/carrito`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${usuario.token}`,
-            },
-            body: JSON.stringify({
-              productoId: prod._id,
-              cantidad: prod.cantidad,
-            }),
-          });
+          // ✅ Actualizar estado y localStorage con el carrito fusionado
+          setCarrito(carritoNormalizado);
+          localStorage.setItem("carrito", JSON.stringify(carritoNormalizado));
         }
-
-        // ✅ Actualizar estado con el carrito fusionado
-        setCarrito(carritoFusionado);
-        localStorage.setItem("carrito", JSON.stringify(carritoFusionado));
       } catch (error) {
-        console.error("Error al recuperar el carrito:", error);
+        console.error("❌ Error al sincronizar carrito:", error);
       }
     };
 
-    fetchCarrito();
+    sincronizarCarrito();
   }, [usuario?.token]);
 
   //-------------------------------------------------------------
@@ -119,7 +100,7 @@ export function CarritoProvider({ children }) {
           )
         : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
 
-      // 💾 Guarda en localStorage si no hay usuario logueado
+      // 💾 Guardar en localStorage si no hay usuario logueado
       if (!usuario?.token) {
         localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
       }
