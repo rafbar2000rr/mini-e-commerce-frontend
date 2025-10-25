@@ -33,55 +33,65 @@ export function CarritoProvider({ children }) {
   // 🔹 Inicializar socket
   //-------------------------------------------------------------
   useEffect(() => {
-    const newSocket = io(API_URL, { transports: ["websocket"], autoConnect: true });
+    const newSocket = io(API_URL, {
+      transports: ["websocket"],
+      autoConnect: true,
+    });
+
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
       console.log("✅ Conectado al backend con Socket.io. ID:", newSocket.id);
-      if (usuario?._id) newSocket.emit("joinRoom", usuario._id);
+      alert("✅ Conectado al backend con Socket.io. ID: " + newSocket.id);
+      if (usuario?._id) newSocket.emit("join", usuario._id);
     });
 
     newSocket.on("connect_error", (err) => {
       console.log("❌ Error de conexión:", err.message);
+      alert("❌ Error de conexión: " + err.message);
     });
 
     return () => newSocket.disconnect();
   }, []);
 
   //-------------------------------------------------------------
-  // 🔹 Unirse a la room del usuario y escuchar cambios
+  // 🔹 Unirse a la room del usuario y actualizar carrito
   //-------------------------------------------------------------
   useEffect(() => {
     if (!socket || !usuario?._id) return;
 
-    // Unirse a la room
-    socket.emit("joinRoom", usuario._id);
+    socket.emit("join", usuario._id);
 
-    // Escuchar cambios en tiempo real
     const actualizarCarrito = async () => {
       try {
         const res = await fetch(`${API_URL}/api/carrito`, {
           headers: { Authorization: `Bearer ${usuario.token}` },
         });
-        if (!res.ok) return;
-        const data = await res.json();
-        const carritoMapeado = data.map((item) => ({
-          _id: item.productoId._id,
-          nombre: item.productoId.nombre,
-          precio: item.productoId.precio,
-          descripcion: item.productoId.descripcion,
-          imagen: item.productoId.imagen,
-          cantidad: item.cantidad,
-        }));
-        setCarrito(carritoMapeado);
-        localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
+        if (res.ok) {
+          const data = await res.json();
+          const carritoMapeado = data.map((item) => ({
+            _id: item.productoId._id,
+            nombre: item.productoId.nombre,
+            precio: item.productoId.precio,
+            descripcion: item.productoId.descripcion,
+            imagen: item.productoId.imagen,
+            cantidad: item.cantidad,
+          }));
+          setCarrito(carritoMapeado);
+          localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
+        }
       } catch (err) {
         console.error("⚠️ Error actualizando carrito:", err);
       }
     };
 
-    socket.on("carrito:update", actualizarCarrito);
-    return () => socket.off("carrito:update", actualizarCarrito);
+    // Escuchar cambios en tiempo real
+    socket.on(`carrito:${usuario._id}`, actualizarCarrito);
+
+    // 🔹 Actualizar al montar para sincronizar con MongoDB
+    actualizarCarrito();
+
+    return () => socket.off(`carrito:${usuario._id}`, actualizarCarrito);
   }, [socket, usuario?._id]);
 
   //-------------------------------------------------------------
@@ -92,14 +102,17 @@ export function CarritoProvider({ children }) {
   }, [carrito]);
 
   //-------------------------------------------------------------
-  // 🔹 Funciones de carrito
+  // 🔹 Emitir evento de actualización
   //-------------------------------------------------------------
   const emitirCambio = () => {
     if (socket && usuario?._id) socket.emit("carrito:update", usuario._id);
   };
 
+  //-------------------------------------------------------------
+  // 🔹 Funciones de carrito
+  //-------------------------------------------------------------
   const agregarAlCarrito = async (producto) => {
-    if (!producto?._id) return;
+    if (!producto || !producto._id) return;
     const productoIdStr = producto._id.toString();
 
     setCarrito((prev) => {
@@ -112,23 +125,31 @@ export function CarritoProvider({ children }) {
     });
 
     if (usuario?.token) {
-      await fetch(`${API_URL}/api/carrito`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
-        body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
-      });
-      emitirCambio();
+      try {
+        await fetch(`${API_URL}/api/carrito`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
+          body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
+        });
+        emitirCambio();
+      } catch (err) {
+        console.error("⚠️ Error agregando al carrito:", err);
+      }
     }
   };
 
   const eliminarDelCarrito = async (id) => {
-    setCarrito((prev) => prev.filter((p) => p._id !== id));
+    setCarrito((prev) => prev.filter((p) => p._id?.toString() !== id.toString()));
     if (usuario?.token) {
-      await fetch(`${API_URL}/api/carrito/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${usuario.token}` },
-      });
-      emitirCambio();
+      try {
+        await fetch(`${API_URL}/api/carrito/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${usuario.token}` },
+        });
+        emitirCambio();
+      } catch (err) {
+        console.error("⚠️ Error eliminando producto:", err);
+      }
     }
   };
 
@@ -136,11 +157,15 @@ export function CarritoProvider({ children }) {
     setCarrito([]);
     localStorage.removeItem("carrito");
     if (usuario?.token) {
-      await fetch(`${API_URL}/api/carrito`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${usuario.token}` },
-      });
-      emitirCambio();
+      try {
+        await fetch(`${API_URL}/api/carrito`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${usuario.token}` },
+        });
+        emitirCambio();
+      } catch (err) {
+        console.error("⚠️ Error vaciando carrito:", err);
+      }
     }
   };
 
@@ -148,16 +173,20 @@ export function CarritoProvider({ children }) {
     if (nuevaCantidad < 1) return eliminarDelCarrito(id);
 
     setCarrito((prev) =>
-      prev.map((p) => (p._id === id ? { ...p, cantidad: nuevaCantidad } : p))
+      prev.map((p) => (p._id?.toString() === id.toString() ? { ...p, cantidad: nuevaCantidad } : p))
     );
 
     if (usuario?.token) {
-      await fetch(`${API_URL}/api/carrito/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
-        body: JSON.stringify({ cantidad: nuevaCantidad }),
-      });
-      emitirCambio();
+      try {
+        await fetch(`${API_URL}/api/carrito/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${usuario.token}` },
+          body: JSON.stringify({ cantidad: nuevaCantidad }),
+        });
+        emitirCambio();
+      } catch (err) {
+        console.error("⚠️ Error actualizando cantidad:", err);
+      }
     }
   };
 
