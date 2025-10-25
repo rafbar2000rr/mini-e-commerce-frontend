@@ -20,9 +20,6 @@ export function useCarrito() {
 // ✅ Proveedor del carrito
 //-------------------------------------------------------------
 export function CarritoProvider({ children }) {
-  //-------------------------------------------------------------
-  // 🔹 Estado del carrito y del usuario
-  //-------------------------------------------------------------
   const [carrito, setCarrito] = useState(() => {
     const guardado = localStorage.getItem("carrito");
     return guardado ? JSON.parse(guardado) : [];
@@ -43,25 +40,22 @@ export function CarritoProvider({ children }) {
   }, [carrito]);
 
   //-------------------------------------------------------------
-  // 🔹 Sincronizar carrito con backend al iniciar sesión
+  // 🔹 Recuperar y sincronizar carrito desde el backend al loguearse
   //-------------------------------------------------------------
   useEffect(() => {
-    const sincronizarCarrito = async () => {
-      if (!usuario?.token || carrito.length === 0) return;
+    const fetchCarrito = async () => {
+      if (!usuario?.token) return;
 
       try {
-        const res = await fetch(`${API_URL}/api/carrito/sincronizar`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${usuario.token}`,
-          },
-          body: JSON.stringify({ carritoLocal: carrito }),
+        // 1️⃣ Traer carrito desde el backend
+        const res = await fetch(`${API_URL}/api/carrito`, {
+          headers: { Authorization: `Bearer ${usuario.token}` },
         });
 
+        let carritoBackend = [];
         if (res.ok) {
           const data = await res.json();
-          const carritoNormalizado = (data || []).map((item) => ({
+          carritoBackend = (data || []).map((item) => ({
             _id: item.productoId._id,
             nombre: item.productoId.nombre,
             precio: item.productoId.precio,
@@ -69,17 +63,44 @@ export function CarritoProvider({ children }) {
             imagen: item.productoId.imagen,
             cantidad: item.cantidad,
           }));
+        }
 
-          // ✅ Actualizar estado y localStorage con el carrito fusionado
-          setCarrito(carritoNormalizado);
-          localStorage.setItem("carrito", JSON.stringify(carritoNormalizado));
+        // 2️⃣ Fusionar con productos en localStorage
+        const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
+        const mapa = new Map();
+
+        carritoBackend.forEach((p) => mapa.set(p._id, { ...p }));
+        carritoLocal.forEach((p) => {
+          if (mapa.has(p._id)) {
+            mapa.get(p._id).cantidad += p.cantidad;
+          } else {
+            mapa.set(p._id, { ...p });
+          }
+        });
+
+        const carritoFusionado = Array.from(mapa.values());
+
+        // 3️⃣ Actualizar estado y localStorage
+        setCarrito(carritoFusionado);
+        localStorage.setItem("carrito", JSON.stringify(carritoFusionado));
+
+        // 4️⃣ Enviar al backend cualquier producto que estaba solo en localStorage
+        for (const prod of carritoFusionado) {
+          await fetch(`${API_URL}/api/carrito`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${usuario.token}`,
+            },
+            body: JSON.stringify({ productoId: prod._id, cantidad: prod.cantidad }),
+          });
         }
       } catch (error) {
-        console.error("❌ Error al sincronizar carrito:", error);
+        console.error("❌ Error al recuperar el carrito:", error);
       }
     };
 
-    sincronizarCarrito();
+    fetchCarrito();
   }, [usuario?.token]);
 
   //-------------------------------------------------------------
@@ -100,7 +121,7 @@ export function CarritoProvider({ children }) {
           )
         : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
 
-      // 💾 Guardar en localStorage si no hay usuario logueado
+      // 💾 Guarda en localStorage si no hay usuario logueado
       if (!usuario?.token) {
         localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
       }
