@@ -3,10 +3,8 @@ import { io } from "socket.io-client";
 // -------------------------------------------------------------
 // 🔹 Conectar con tu servidor Socket.io
 // -------------------------------------------------------------
+// Reemplaza con la URL de tu backend en Railway o donde tengas tu servidor
 const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-// 🧩 Mostrar la URL que se está usando
-console.log("🧩 SOCKET_URL:", SOCKET_URL);
 
 export const socket = io(SOCKET_URL, {
   transports: ["websocket"], // 🔹 Asegura conexión WebSocket
