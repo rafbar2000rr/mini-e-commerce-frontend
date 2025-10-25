@@ -42,20 +42,19 @@ export function CarritoProvider({ children }) {
 
     newSocket.on("connect", () => {
       console.log("✅ Conectado al backend con Socket.io. ID:", newSocket.id);
-      alert("✅ Conectado al backend con Socket.io. ID: " + newSocket.id);
+      // Entrar a su room si hay usuario
       if (usuario?._id) newSocket.emit("join", usuario._id);
     });
 
     newSocket.on("connect_error", (err) => {
       console.log("❌ Error de conexión:", err.message);
-      alert("❌ Error de conexión: " + err.message);
     });
 
     return () => newSocket.disconnect();
   }, []);
 
   //-------------------------------------------------------------
-  // 🔹 Unirse a la room del usuario y actualizar carrito
+  // 🔹 Unirse a la room del usuario y escuchar cambios
   //-------------------------------------------------------------
   useEffect(() => {
     if (!socket || !usuario?._id) return;
@@ -85,11 +84,8 @@ export function CarritoProvider({ children }) {
       }
     };
 
-    // Escuchar cambios en tiempo real
+    // Escuchar cambios en tiempo real solo para este usuario
     socket.on(`carrito:${usuario._id}`, actualizarCarrito);
-
-    // 🔹 Actualizar al montar para sincronizar con MongoDB
-    actualizarCarrito();
 
     return () => socket.off(`carrito:${usuario._id}`, actualizarCarrito);
   }, [socket, usuario?._id]);
@@ -100,6 +96,34 @@ export function CarritoProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("carrito", JSON.stringify(carrito));
   }, [carrito]);
+
+  //-------------------------------------------------------------
+  // 🔹 Cargar carrito al iniciar sesión
+  //-------------------------------------------------------------
+  useEffect(() => {
+    const cargarCarrito = async () => {
+      if (!usuario?.token) return;
+      try {
+        const res = await fetch(`${API_URL}/api/carrito`, {
+          headers: { Authorization: `Bearer ${usuario.token}` },
+        });
+        const data = await res.json();
+        const carritoMapeado = data.map((item) => ({
+          _id: item.productoId._id,
+          nombre: item.productoId.nombre,
+          precio: item.productoId.precio,
+          descripcion: item.productoId.descripcion,
+          imagen: item.productoId.imagen,
+          cantidad: item.cantidad,
+        }));
+        setCarrito(carritoMapeado);
+        localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
+      } catch (err) {
+        console.error("⚠️ Error cargando carrito:", err);
+      }
+    };
+    cargarCarrito();
+  }, [usuario?.token]);
 
   //-------------------------------------------------------------
   // 🔹 Emitir evento de actualización
