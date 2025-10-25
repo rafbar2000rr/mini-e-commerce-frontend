@@ -2,23 +2,18 @@ import { createContext, useState, useEffect, useContext } from "react";
 import { io } from "socket.io-client";
 
 //-------------------------------------------------------------
-// ✅ Creamos el contexto del carrito
+// 💠 Contexto del carrito
 //-------------------------------------------------------------
 export const CarritoContext = createContext();
 
-//-------------------------------------------------------------
-// ✅ Hook personalizado para acceder fácilmente al carrito
-//-------------------------------------------------------------
 export function useCarrito() {
   const context = useContext(CarritoContext);
-  if (!context) {
-    throw new Error("useCarrito debe usarse dentro de un <CarritoProvider>");
-  }
+  if (!context) throw new Error("useCarrito debe usarse dentro de un <CarritoProvider>");
   return context;
 }
 
 //-------------------------------------------------------------
-// ✅ Proveedor del carrito
+// 💠 Proveedor del carrito
 //-------------------------------------------------------------
 export function CarritoProvider({ children }) {
   const [carrito, setCarrito] = useState(() => {
@@ -40,26 +35,20 @@ export function CarritoProvider({ children }) {
   useEffect(() => {
     const newSocket = io(API_URL);
     setSocket(newSocket);
-    console.log("Socket conectado?", newSocket.connected);
+
     newSocket.on("connect", () => {
-    console.log("✅ Conectado al backend");
-    alert("✅ Conectado al backend"); // <-- para verlo en el celular
+      console.log("✅ Conectado al backend con Socket.io");
+      alert("✅ Conectado al backend"); // visible en celular
     });
 
     newSocket.on("connect_error", (err) => {
-    console.log("❌ Error:", err.message);
-    alert("❌ Error de conexión: " + err.message); // <-- alerta visible
-  });
-
+      console.log("❌ Error de conexión:", err.message);
+      alert("❌ Error de conexión: " + err.message);
+    });
 
     return () => newSocket.disconnect();
   }, []);
 
-
-  
-
-
-  
   //-------------------------------------------------------------
   // 🔹 Escuchar carrito en tiempo real
   //-------------------------------------------------------------
@@ -85,7 +74,7 @@ export function CarritoProvider({ children }) {
           localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
         }
       } catch (err) {
-        console.error("Error actualizando carrito en tiempo real:", err);
+        console.error("⚠️ Error actualizando carrito:", err);
       }
     };
 
@@ -122,14 +111,14 @@ export function CarritoProvider({ children }) {
         setCarrito(carritoMapeado);
         localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
       } catch (err) {
-        console.error("Error cargando carrito:", err);
+        console.error("⚠️ Error cargando carrito:", err);
       }
     };
     cargarCarrito();
   }, [usuario?.token]);
 
   //-------------------------------------------------------------
-  // 🔹 Emitir evento de carrito actualizado
+  // 🔹 Emitir evento de actualización
   //-------------------------------------------------------------
   const emitirCambio = () => {
     if (socket && usuario?._id) socket.emit("carrito:update", usuario._id);
@@ -146,9 +135,7 @@ export function CarritoProvider({ children }) {
       const existe = prev.find((p) => p._id === productoIdStr);
       const nuevoCarrito = existe
         ? prev.map((p) =>
-            p._id === productoIdStr
-              ? { ...p, cantidad: (p.cantidad || 1) + 1 }
-              : p
+            p._id === productoIdStr ? { ...p, cantidad: p.cantidad + 1 } : p
           )
         : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
 
@@ -165,7 +152,7 @@ export function CarritoProvider({ children }) {
         });
         emitirCambio();
       } catch (err) {
-        console.error("Error agregando al carrito:", err);
+        console.error("⚠️ Error agregando al carrito:", err);
       }
     }
   };
@@ -177,10 +164,13 @@ export function CarritoProvider({ children }) {
     setCarrito((prev) => prev.filter((p) => p._id?.toString() !== id.toString()));
     if (usuario?.token) {
       try {
-        await fetch(`${API_URL}/api/carrito/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${usuario.token}` } });
+        await fetch(`${API_URL}/api/carrito/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${usuario.token}` },
+        });
         emitirCambio();
       } catch (err) {
-        console.error("Error eliminando producto:", err);
+        console.error("⚠️ Error eliminando producto:", err);
       }
     }
   };
@@ -193,10 +183,13 @@ export function CarritoProvider({ children }) {
     localStorage.removeItem("carrito");
     if (usuario?.token) {
       try {
-        await fetch(`${API_URL}/api/carrito`, { method: "DELETE", headers: { Authorization: `Bearer ${usuario.token}` } });
+        await fetch(`${API_URL}/api/carrito`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${usuario.token}` },
+        });
         emitirCambio();
       } catch (err) {
-        console.error("Error vaciando carrito:", err);
+        console.error("⚠️ Error vaciando carrito:", err);
       }
     }
   };
@@ -205,10 +198,7 @@ export function CarritoProvider({ children }) {
   // 🔹 Actualizar cantidad
   //-------------------------------------------------------------
   const actualizarCantidad = async (id, nuevaCantidad) => {
-    if (nuevaCantidad < 1) {
-      eliminarDelCarrito(id);
-      return;
-    }
+    if (nuevaCantidad < 1) return eliminarDelCarrito(id);
 
     setCarrito((prev) =>
       prev.map((p) =>
@@ -225,13 +215,13 @@ export function CarritoProvider({ children }) {
         });
         emitirCambio();
       } catch (err) {
-        console.error("Error actualizando cantidad:", err);
+        console.error("⚠️ Error actualizando cantidad:", err);
       }
     }
   };
 
   //-------------------------------------------------------------
-  // 🔹 Proveer contexto a toda la app
+  // 💠 Exportar contexto
   //-------------------------------------------------------------
   return (
     <CarritoContext.Provider
