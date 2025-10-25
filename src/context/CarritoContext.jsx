@@ -27,37 +27,37 @@ export function CarritoProvider({ children }) {
   });
 
   const API_URL = import.meta.env.VITE_API_URL;
-  const [socket, setSocket] = useState(null);
+
+  // -------------------------------------------------------------
+  // 🔹 Inicializar socket directamente (ya no con useState)
+  // -------------------------------------------------------------
+  const socket = io(API_URL, {
+    transports: ["websocket"],
+    autoConnect: true,
+  });
 
   //-------------------------------------------------------------
-  // 🔹 Inicializar Socket.io
+  // 🔹 Conexión de socket
   //-------------------------------------------------------------
   useEffect(() => {
-    const newSocket = io(API_URL);
-    setSocket(newSocket);
-
-    newSocket.on("connect", () => {
-      console.log("✅ Conectado al backend con Socket.io");
-      alert("✅ Conectado al backend"); // visible en celular
+    socket.on("connect", () => {
+      console.log("✅ Conectado al backend con Socket.io. ID:", socket.id);
+      alert("✅ Conectado al backend con Socket.io. ID: " + socket.id);
     });
 
-    newSocket.on("connect_error", (err) => {
+    socket.on("connect_error", (err) => {
       console.log("❌ Error de conexión:", err.message);
       alert("❌ Error de conexión: " + err.message);
     });
-    socket.on("connect", () => {
-    console.log("🔌 Conectado a Socket.io con ID:", socket.id);
-    alert("🔌 Conectado a Socket.io con ID: " + socket.id);
-});
 
-    return () => newSocket.disconnect();
+    return () => socket.disconnect();
   }, []);
 
   //-------------------------------------------------------------
   // 🔹 Escuchar carrito en tiempo real
   //-------------------------------------------------------------
   useEffect(() => {
-    if (!socket || !usuario?._id) return;
+    if (!usuario?._id) return;
 
     const actualizarCarrito = async () => {
       try {
@@ -84,7 +84,7 @@ export function CarritoProvider({ children }) {
 
     socket.on(`carrito:${usuario._id}`, actualizarCarrito);
     return () => socket.off(`carrito:${usuario._id}`, actualizarCarrito);
-  }, [socket, usuario?.token, usuario?._id]);
+  }, [usuario?._id]);
 
   //-------------------------------------------------------------
   // 🔹 Guardar carrito en localStorage
@@ -125,11 +125,11 @@ export function CarritoProvider({ children }) {
   // 🔹 Emitir evento de actualización
   //-------------------------------------------------------------
   const emitirCambio = () => {
-    if (socket && usuario?._id) socket.emit("carrito:update", usuario._id);
+    if (usuario?._id) socket.emit("carrito:update", usuario._id);
   };
 
   //-------------------------------------------------------------
-  // 🔹 Agregar producto
+  // 🔹 Funciones de carrito
   //-------------------------------------------------------------
   const agregarAlCarrito = async (producto) => {
     if (!producto || !producto._id) return;
@@ -161,9 +161,6 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  //-------------------------------------------------------------
-  // 🔹 Eliminar producto
-  //-------------------------------------------------------------
   const eliminarDelCarrito = async (id) => {
     setCarrito((prev) => prev.filter((p) => p._id?.toString() !== id.toString()));
     if (usuario?.token) {
@@ -179,9 +176,6 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  //-------------------------------------------------------------
-  // 🔹 Vaciar carrito
-  //-------------------------------------------------------------
   const vaciarCarrito = async () => {
     setCarrito([]);
     localStorage.removeItem("carrito");
@@ -198,9 +192,6 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  //-------------------------------------------------------------
-  // 🔹 Actualizar cantidad
-  //-------------------------------------------------------------
   const actualizarCantidad = async (id, nuevaCantidad) => {
     if (nuevaCantidad < 1) return eliminarDelCarrito(id);
 
