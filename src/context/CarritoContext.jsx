@@ -91,35 +91,44 @@ export function CarritoProvider({ children }) {
   // 🔹 Agregar producto al carrito
   //-------------------------------------------------------------
   const agregarAlCarrito = async (producto) => {
-    if (!producto || !producto._id) return;
-    const productoIdStr = producto._id.toString();
+  if (!producto || !producto._id) return;
+  const productoIdStr = producto._id.toString();
 
-    setCarrito((prev) => {
-      const existe = prev.find((p) => p._id === productoIdStr);
-      return existe
-        ? prev.map((p) =>
-            p._id === productoIdStr
-              ? { ...p, cantidad: (p.cantidad || 1) + 1 }
-              : p
-          )
-        : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
-    });
+  // 🛒 Actualiza el estado local
+  setCarrito((prev) => {
+    const existe = prev.find((p) => p._id === productoIdStr);
+    const nuevoCarrito = existe
+      ? prev.map((p) =>
+          p._id === productoIdStr
+            ? { ...p, cantidad: (p.cantidad || 1) + 1 }
+            : p
+        )
+      : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
 
-    if (usuario?.token) {
-      try {
-        await fetch(`${API_URL}/carrito`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${usuario.token}`,
-          },
-          body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
-        });
-      } catch (error) {
-        console.error("❌ Error agregando al carrito:", error);
-      }
+    // 💾 Guarda en localStorage si no hay usuario logueado
+    if (!usuario?.token) {
+      localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
     }
-  };
+
+    return nuevoCarrito;
+  });
+
+  // 🔐 Si está logueado, también lo guarda en el backend
+  if (usuario?.token) {
+    try {
+      await fetch(`${API_URL}/carrito`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${usuario.token}`,
+        },
+        body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
+      });
+    } catch (error) {
+      console.error("❌ Error agregando al carrito:", error);
+    }
+  }
+};
 
   //-------------------------------------------------------------
   // 🔹 Eliminar producto del carrito
