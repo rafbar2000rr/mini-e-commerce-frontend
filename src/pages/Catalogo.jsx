@@ -142,7 +142,11 @@ function Catalogo() {
                           ${producto.precio.toFixed(2)}
                         </p>
                         <button
-                          onClick={() => handleAgregarAlCarrito(producto)}
+                          onClick={() => {console.log("🖱️ Clic detectado en botón Agregar");
+                            handleAgregarAlCarrito(producto);
+                            
+                          }}
+                          
                           disabled={producto.stock === 0}
                           className={`px-3 py-2 text-sm rounded-xl font-medium transition-colors duration-200 ${
                             producto.stock === 0
