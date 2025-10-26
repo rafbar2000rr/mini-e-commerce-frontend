@@ -76,7 +76,7 @@ export default function MisOrdenes() {
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">🧾 Mis Órdenes</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800"> Mis Órdenes</h2>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
