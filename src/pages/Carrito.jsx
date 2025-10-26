@@ -46,7 +46,7 @@ function Carrito() {
                 <div>
                   <h4>{producto.nombre}</h4>
                   <p>
-                    ${producto.precio} x {producto.cantidad || 1}
+                    ${producto.precio} 
                   </p>
                   <div className="cantidad-control">
                     <button onClick={() => actualizarCantidad(producto._id || producto.id, (producto.cantidad || 1) - 1)}>-</button>
