@@ -36,35 +36,28 @@ function Carrito() {
         <>
           <ul> {/* Lista de productos en el carrito */}
             {carrito.map((producto, index) => (
-              <li key={index} className="producto-carrito">
-  <img
-    src={`${API_URL}/uploads/${producto.imagen}`}
-    alt={producto.nombre}
-    width={80}
-    height={80}
-  />
-
-  <div className="info-producto">
-    <h4>{producto.nombre}</h4>
-    <p>${producto.precio}</p>
-
-    <div className="acciones-producto">
-      <div className="cantidad-control">
-        <button onClick={() => actualizarCantidad(producto._id || producto.id, (producto.cantidad || 1) - 1)}>-</button>
-        <span>{producto.cantidad || 1}</span>
-        <button onClick={() => actualizarCantidad(producto._id || producto.id, (producto.cantidad || 1) + 1)}>+</button>
-      </div>
-
-      <button
-        className="btn-eliminar"
-        onClick={() => eliminarDelCarrito(producto._id || producto.id)}
-      >
-        Eliminar
-      </button>
-    </div>
-  </div>
-</li>
-
+              <li key={index} className="producto-carrito"> {/* Cada producto */}
+                <img
+                  src={`${API_URL}/uploads/${producto.imagen}`}
+                  alt={producto.nombre}
+                  width={80}
+                  height={80}
+                />
+                <div>
+                  <h4>{producto.nombre}</h4>
+                  <p>
+                    ${producto.precio} x {producto.cantidad || 1}
+                  </p>
+                  <div className="cantidad-control">
+                    <button onClick={() => actualizarCantidad(producto._id || producto.id, (producto.cantidad || 1) - 1)}>-</button>
+                    <span>{producto.cantidad || 1}</span>
+                    <button onClick={() => actualizarCantidad(producto._id || producto.id, (producto.cantidad || 1) + 1)}>+</button>
+                  </div>
+                </div>
+                <button onClick={() => eliminarDelCarrito(producto._id || producto.id)}>
+                  Eliminar
+                </button>
+              </li>
             ))}
           </ul>
 
