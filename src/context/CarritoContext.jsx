@@ -121,32 +121,45 @@ export function CarritoProvider({ children }) {
   // 🔹 Funciones del carrito
   // -------------------------------------------------------------
   const agregarAlCarrito = async (producto) => {
-    if (!producto || !producto._id) return;
-    const productoIdStr = producto._id.toString();
-    const token = localStorage.getItem("token");
+  if (!producto || !producto._id) return;
+  const productoIdStr = producto._id.toString();
+  const token = localStorage.getItem("token");
 
-    setCarrito((prev) => {
-      const existe = prev.find((p) => p._id === productoIdStr);
-      const nuevoCarrito = existe
-        ? prev.map((p) => (p._id === productoIdStr ? { ...p, cantidad: p.cantidad + 1 } : p))
-        : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
-      if (!token) localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
-      return nuevoCarrito;
-    });
+  console.log("🛒 Intentando agregar producto al carrito:", producto);
 
-    if (token) {
-      try {
-        await fetch(`${API_URL}/api/carrito`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
-        });
-        emitirCambio();
-      } catch (err) {
-        console.error("⚠️ Error agregando al carrito:", err);
-      }
+  setCarrito((prev) => {
+    const existe = prev.find((p) => p._id === productoIdStr);
+    const nuevoCarrito = existe
+      ? prev.map((p) =>
+          p._id === productoIdStr ? { ...p, cantidad: p.cantidad + 1 } : p
+        )
+      : [...prev, { ...producto, _id: productoIdStr, cantidad: 1 }];
+    if (!token)
+      localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
+    console.log("✅ Carrito actualizado localmente:", nuevoCarrito);
+    return nuevoCarrito;
+  });
+
+  if (token) {
+    try {
+      const res = await fetch(`${API_URL}/api/carrito`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ productoId: productoIdStr, cantidad: 1 }),
+      });
+
+      console.log("📡 Respuesta del backend:", res.status);
+
+      emitirCambio();
+    } catch (err) {
+      console.error("⚠️ Error agregando al carrito:", err);
     }
-  };
+  }
+};
+
 
   const eliminarDelCarrito = async (id) => {
     const token = localStorage.getItem("token");
