@@ -9,7 +9,7 @@ export default function PanelPedidos() {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">📦 Gestión de Pedidos</h2>
+      <h2 className="text-2xl font-bold mb-4">Gestión de Pedidos</h2>
       <ListaPedidos refrescar={refrescar} onRefrescar={handleRefrescar} />
     </div>
   );
