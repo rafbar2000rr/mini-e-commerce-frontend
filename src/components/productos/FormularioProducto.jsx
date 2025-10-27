@@ -183,15 +183,29 @@ export default function FormularioProducto({ onProductoAgregado, productoEditand
         {errores.stock && <p className="text-red-500 text-sm">{errores.stock}</p>}
       </div>
 
+    
       {/** Imagen */}
       <div>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImagen(e.target.files[0])}
-          className="border w-full p-2 rounded-lg"
-        />
-      </div>
+        {/* ✅ Vista previa de la imagen actual si estás editando un producto */}
+        {enEdicion && productoEditando?.imagen && (
+        <div className="mb-2">
+          <p className="text-sm text-gray-600 mb-1">Imagen actual:</p>
+          <img
+          src={productoEditando.imagen}
+          alt="Imagen actual del producto"
+          className="w-32 h-32 object-cover rounded-md border"
+          />
+       </div>
+    )}
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setImagen(e.target.files[0])}
+        className="border w-full p-2 rounded-lg"
+      />
+    </div>
+
 
       {/** Botones */}
       <div className="flex space-x-2">
