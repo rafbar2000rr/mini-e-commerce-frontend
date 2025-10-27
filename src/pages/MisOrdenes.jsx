@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; // 👈 agregado useLocation
 
 //-------------------------------------------------
-//Genera la lista de todas las órdenes del usuario
+// Genera la lista de todas las órdenes del usuario
 //-------------------------------------------------
 export default function MisOrdenes() {
   // ✅ Lista de órdenes del usuario
@@ -17,69 +17,77 @@ export default function MisOrdenes() {
   // ✅ Detectar cambios en la ruta (para refrescar automáticamente)
   const location = useLocation();
   const API_URL = import.meta.env.VITE_API_URL;
+
+  // 🔹 Función para obtener la URL correcta de la imagen
+  const getImagen = (imagen) => {
+    if (!imagen) return '/placeholder.png'; // placeholder si no hay imagen
+    return imagen.startsWith('http') ? imagen : `${API_URL}/uploads/${imagen}`;
+  };
+
   // ✅ useEffect → se ejecuta al montar para traer órdenes del usuario
   useEffect(() => {
-  (async () => {
-    try {
-      // 🔹 obtenemos el token del localStorage
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.');
+    (async () => {
+      try {
+        // 🔹 obtenemos el token del localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.');
+          setLoading(false);
+          return;
+        }
+
+        // 🔹 pedimos órdenes al backend
+        const res = await fetch(`${API_URL}/api/my-orders`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("🧠 Token enviado:", token);
+
+        if (res.status === 401) {
+          setError('Tu sesión ha expirado. Inicia sesión nuevamente.');
+          setLoading(false);
+          return;
+        }
+
+        if (!res.ok) throw new Error('Error al obtener tus órdenes');
+
+        const data = await res.json();
+        console.log("📦 Datos recibidos:", data);
+
+        if (data.error) {
+          setError(data.error);
+        } else {
+          // ✅ Ordenar órdenes por fecha descendente
+          const ordenadas = [...data].sort(
+            (a, b) => new Date(b.fecha) - new Date(a.fecha)
+          );
+          setOrdenes(ordenadas);
+        }
+      } catch (err) {
+        setError(err.message || 'Error al obtener tus órdenes');
+      } finally {
         setLoading(false);
-        return;
       }
+    })();
+  }, [location]); // 🔹 Dependencia location para refrescar al cambiar de ruta
 
-      // 🔹 pedimos órdenes al backend
-      const res = await fetch(`${API_URL}/api/my-orders`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log("🧠 Token enviado:", token);
-
-      if (res.status === 401) {
-        setError('Tu sesión ha expirado. Inicia sesión nuevamente.');
-        setLoading(false);
-        return;
-      }
-
-      if (!res.ok) {
-        throw new Error('Error al obtener tus órdenes');
-      }
-      console.log("📡 Respuesta HTTP:", res.status);
-
-      const data = await res.json();
-      console.log("📦 Datos recibidos:", data);
-
-      if (data.error) {
-        setError(data.error);
-      } else {
-        // ✅ Ordenar órdenes por fecha descendente
-        const ordenadas = [...data].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setOrdenes(ordenadas);
-      }
-    } catch (err) {
-      setError(err.message || 'Error al obtener tus órdenes');
-    } finally {
-      setLoading(false);
-    }
-  })();
-}, []);
-
+  // 🔹 Mostrar mensaje de carga mientras se obtienen las órdenes
   if (loading) {
     return <p className="p-8 text-gray-600">Cargando tus órdenes...</p>;
   }
+
   console.log("✅ MisOrdenes montado");
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800"> Mis Órdenes</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Mis Órdenes</h2>
 
+      {/* 🔹 Mostrar errores */}
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
+      {/* 🔹 Si no hay órdenes */}
       {ordenes.length === 0 ? (
         <p className="text-gray-600">No has realizado ninguna compra aún.</p>
       ) : (
@@ -97,7 +105,7 @@ export default function MisOrdenes() {
                   {/* ✅ Miniatura usando productoId.imagen */}
                   {primerProducto?.imagen ? (
                     <img
-                      src={`${API_URL}/uploads/${primerProducto.imagen}`}
+                      src={getImagen(primerProducto.imagen)}
                       alt={primerProducto.nombre}
                       className="w-16 h-16 object-cover rounded-lg border"
                     />
@@ -122,8 +130,7 @@ export default function MisOrdenes() {
                       }) ?? '$0.00'}
                     </p>
                     <p className="text-gray-500 text-sm">
-                      {o.productos?.length ?? 0} producto(s) — Haz clic para ver
-                      detalles
+                      {o.productos?.length ?? 0} producto(s) — Haz clic para ver detalles
                     </p>
                   </div>
                 </Link>
