@@ -1,12 +1,20 @@
-// src/admin/ListaPedidos.jsx
 import { useEffect, useState } from "react";
 
-function ListaPedidos({ usuario }) { // 🔹 recibimos el usuario logueado
+function ListaPedidos({ usuario: usuarioProp }) {
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [usuario, setUsuario] = useState(usuarioProp || null);
   const API_URL = import.meta.env.VITE_API_URL;
+
+  // ✅ Obtener usuario del localStorage si no viene por props
+  useEffect(() => {
+    if (!usuarioProp) {
+      const userData = localStorage.getItem("usuario");
+      if (userData) setUsuario(JSON.parse(userData));
+    }
+  }, [usuarioProp]);
 
   useEffect(() => {
     fetchOrdenes();
@@ -14,7 +22,7 @@ function ListaPedidos({ usuario }) { // 🔹 recibimos el usuario logueado
 
   const fetchOrdenes = async () => {
     try {
-      const token = localStorage.getItem("token"); // 🔹 enviar token si lo necesitas
+      const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -53,6 +61,7 @@ function ListaPedidos({ usuario }) { // 🔹 recibimos el usuario logueado
 
   if (loading) return <p>Cargando órdenes...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (!usuario) return <p>Cargando usuario...</p>;
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -130,7 +139,7 @@ function ListaPedidos({ usuario }) { // 🔹 recibimos el usuario logueado
                 <td>${orden.total}</td>
                 <td>{new Date(orden.fecha).toLocaleDateString()}</td>
                 <td style={getEstadoColor(orden.estado)}>
-                  {usuario.rol === "admin" ? (
+                  {usuario?.rol === "admin" ? (
                     <select
                       value={orden.estado}
                       onChange={(e) => cambiarEstado(orden._id, e.target.value)}
