@@ -22,81 +22,84 @@ export default function ListaProductos({ productos, onEditar, onEliminar, onActu
         />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-100 text-gray-700 uppercase text-sm">
-              <th className="p-3 border-b">Imagen</th>
-              <th className="p-3 border-b">Nombre</th>
-              <th className="p-3 border-b">Precio</th>
-              <th className="p-3 border-b">Stock</th>
-              <th className="p-3 border-b">Descripción</th>
-              <th className="p-3 border-b">Categoría</th>
-              <th className="p-3 border-b">Acciones</th>
-            </tr>
-          </thead>
+      <table className="w-full text-left border-collapse">
+  <thead>
+    <tr className="bg-gray-100 text-gray-700 uppercase text-sm">
+      <th className="p-3 border-b">Imagen</th>
+      <th className="p-3 border-b">Nombre</th>
+      <th className="p-3 border-b">Precio</th>
+      <th className="p-3 border-b">Stock</th>
+      <th className="p-3 border-b">Descripción</th>
+      <th className="p-3 border-b">Categoría</th>
+      <th className="p-3 border-b">Acciones</th>
+    </tr>
+  </thead>
 
-          <AnimatePresence component="tbody">
-            {productos.map(producto => (
-              <motion.tr
-                key={producto._id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="hover:bg-gray-50"
+  <tbody>
+    <AnimatePresence>
+      {productos.map((producto) => (
+        <motion.tr
+          key={producto._id}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="hover:bg-gray-50"
+        >
+          <td className="p-3 border-b">
+            {producto.imagen && (
+              <img
+                src={`${API_URL}/uploads/${producto.imagen}`}
+                alt={producto.nombre}
+                className="w-16 h-16 object-cover rounded-md border"
+              />
+            )}
+          </td>
+          <td className="p-3 border-b">{producto.nombre}</td>
+          <td className="p-3 border-b font-semibold text-green-600">
+            ${producto.precio}
+          </td>
+          <td className="p-3 border-b">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => onActualizarStock(producto._id, -1)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-full w-6 h-6 flex items-center justify-center"
               >
-                <td className="p-3 border-b">
-                  {producto.imagen && (
-                    <img
-                      src={`${API_URL}/uploads/${producto.imagen}`}
-                      alt={producto.nombre}
-                      className="w-16 h-16 object-cover rounded-md border"
-                    />
-                  )}
-                </td>
-                <td className="p-3 border-b">{producto.nombre}</td>
-                <td className="p-3 border-b font-semibold text-green-600">${producto.precio}</td>
-                <td className="p-3 border-b">
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => onActualizarStock(producto._id, -1)}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-full w-6 h-6 flex items-center justify-center"
-                    >
-                      −
-                    </button>
-                    <span className={`font-semibold ${getStockColor(producto.stock ?? 0)}`}>
-                      {producto.stock ?? 0}
-                    </span>
-                    <button
-                      onClick={() => onActualizarStock(producto._id, 1)}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-full w-6 h-6 flex items-center justify-center"
-                    >
-                      +
-                    </button>
-                  </div>
-                </td>
-                <td className="p-3 border-b">{producto.descripcion}</td>
-                <td className="p-3 border-b">{producto.categoria?.nombre || "Sin categoría"}</td>
-                <td className="p-3 border-b space-x-2">
-                  <button
-                    onClick={() => onEditar(producto)}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg shadow"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => onEliminar(producto._id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg shadow"
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </motion.tr>
-            ))}
-          </AnimatePresence>
-        </table>
-      </div>
+                −
+              </button>
+              <span className={`font-semibold ${getStockColor(producto.stock ?? 0)}`}>
+                {producto.stock ?? 0}
+              </span>
+              <button
+                onClick={() => onActualizarStock(producto._id, 1)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-full w-6 h-6 flex items-center justify-center"
+              >
+                +
+              </button>
+            </div>
+          </td>
+          <td className="p-3 border-b">{producto.descripcion}</td>
+          <td className="p-3 border-b">{producto.categoria?.nombre || "Sin categoría"}</td>
+          <td className="p-3 border-b space-x-2">
+            <button
+              onClick={() => onEditar(producto)}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg shadow"
+            >
+              Editar
+            </button>
+            <button
+              onClick={() => onEliminar(producto._id)}
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg shadow"
+            >
+              Eliminar
+            </button>
+          </td>
+        </motion.tr>
+      ))}
+    </AnimatePresence>
+  </tbody>
+</table>
+
 
       {/* 🔹 Paginación */}
       <div className="flex justify-center mt-6 space-x-2">
