@@ -1,6 +1,7 @@
+// ListaPedidos.jsx
 import { useEffect, useState } from "react";
 
-function ListaPedidos({ usuario: usuarioProp }) {
+function ListaPedidos({ usuario: usuarioProp, refrescar, onRefrescar }) {
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,9 +17,15 @@ function ListaPedidos({ usuario: usuarioProp }) {
     }
   }, [usuarioProp]);
 
+  // ✅ Solo fetch si el usuario es admin
   useEffect(() => {
-    fetchOrdenes();
-  }, []);
+    if (usuario?.rol === "admin") {
+      fetchOrdenes();
+    } else {
+      setLoading(false);
+      setError("No tienes permisos para ver esta lista de órdenes.");
+    }
+  }, [usuario, refrescar]);
 
   const fetchOrdenes = async () => {
     try {
@@ -26,7 +33,7 @@ function ListaPedidos({ usuario: usuarioProp }) {
       const res = await fetch(`${API_URL}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Error al obtener órdenes");
+      if (!res.ok) throw new Error("No tienes permisos o error en el servidor");
       const data = await res.json();
       setOrdenes(data);
     } catch (err) {
@@ -53,14 +60,14 @@ function ListaPedidos({ usuario: usuarioProp }) {
         body: JSON.stringify({ estado: nuevoEstado }),
       });
       if (!res.ok) throw new Error("No tienes permiso para actualizar el estado");
-      fetchOrdenes();
+      onRefrescar(); // actualizar lista
     } catch (err) {
       alert("❌ " + err.message);
     }
   };
 
   if (loading) return <p>Cargando órdenes...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (error) return <p style={{ color: "red", padding: "10px" }}>{error}</p>;
   if (!usuario) return <p>Cargando usuario...</p>;
 
   const getEstadoColor = (estado) => {
