@@ -46,21 +46,22 @@ export default function ListaProductos({ productos, onEditar, onEliminar, onActu
           transition={{ duration: 0.2 }}
           className="hover:bg-gray-50"
         >
-          <td className="p-3 border-b">
-            {producto.imagen ? (
-              <img
-               src={
-                  producto.imagen.startsWith("http")
-                  ? producto.imagen   // URL completa de Cloudinary
-                  : `${API_URL}/uploads/${producto.imagen}` // archivo del servidor
-                }
-                  alt={producto.nombre}
-                  className="w-16 h-16 object-cover rounded-md border"
-              />
-               ) : (
-              <span className="text-gray-400">Sin imagen</span>
-              )}
-          </td>
+         <td className="p-3 border-b">
+  {producto.imagen ? (
+    <img
+      src={
+        producto.imagen.startsWith("http")
+          ? producto.imagen   // URL completa de Cloudinary
+          : `${API_URL}/uploads/${producto.imagen}` // archivo del servidor
+       }
+        alt={producto.nombre}
+        className="w-16 h-16 object-cover rounded-md border"
+         />
+        ) : (
+          <span className="text-gray-400">Sin imagen</span>
+          )}
+        </td>
+
           <td className="p-3 border-b">{producto.nombre}</td>
           <td className="p-3 border-b font-semibold text-green-600">
             ${producto.precio}
