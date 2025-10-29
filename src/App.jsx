@@ -8,7 +8,6 @@ import { Routes, Route } from "react-router-dom";
 
 // ✅ Contextos globales
 import { CarritoProvider } from "./context/CarritoContext";
-import { AuthProvider } from "./context/AuthContext";
 
 // ✅ Componentes principales
 import Navbar from "./components/Navbar";

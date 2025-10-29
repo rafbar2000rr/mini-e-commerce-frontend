@@ -84,31 +84,33 @@ export function CarritoProvider({ children }) {
   // -------------------------------------------------------------
   // 🔹 Cargar carrito al iniciar sesión
   // -------------------------------------------------------------
-  useEffect(() => {
-    const cargarCarrito = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      try {
-        const res = await fetch(`${API_URL}/api/carrito`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        const carritoMapeado = data.map((item) => ({
-          _id: item.productoId._id,
-          nombre: item.productoId.nombre,
-          precio: item.productoId.precio,
-          descripcion: item.productoId.descripcion,
-          imagen: item.productoId.imagen,
-          cantidad: item.cantidad,
-        }));
-        setCarrito(carritoMapeado);
-        localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
-      } catch (err) {
-        console.error("⚠️ Error cargando carrito:", err);
-      }
-    };
-    cargarCarrito();
-  }, []);
+useEffect(() => {
+  const cargarCarrito = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !usuario) return;
+    try {
+      const res = await fetch(`${API_URL}/api/carrito`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      const carritoMapeado = data.map((item) => ({
+        _id: item.productoId._id,
+        nombre: item.productoId.nombre,
+        precio: item.productoId.precio,
+        descripcion: item.productoId.descripcion,
+        imagen: item.productoId.imagen,
+        cantidad: item.cantidad,
+      }));
+      setCarrito(carritoMapeado);
+      localStorage.setItem("carrito", JSON.stringify(carritoMapeado));
+    } catch (err) {
+      console.error("⚠️ Error cargando carrito:", err);
+    }
+  };
+
+  cargarCarrito();
+}, [usuario]);
+
 
   // -------------------------------------------------------------
   // 🔹 Emitir cambio
