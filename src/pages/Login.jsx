@@ -1,23 +1,32 @@
-import { useState, useContext } from "react";
+//====================================================
+// Login.jsx
+// Página de inicio de sesión para usuarios y admin
+//====================================================
+
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CarritoContext } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext"; // ✅ Ahora usamos AuthContext
 
 export default function Login() {
+  //----------------------------------------
+  // 🔹 Estados para manejar campos y mensajes
+  //----------------------------------------
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { setUsuario } = useContext(CarritoContext);
+  const { login } = useAuth(); // ✅ login viene del AuthContext
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
+  //----------------------------------------
+  // 🔹 Manejar el login del usuario
+  //----------------------------------------
   const handleLogin = async (e) => {
     e.preventDefault();
     setMessage("");
 
-    // ⚠️ Validación básica
+    // ⚠️ Validación básica antes de enviar
     if (!email.includes("@") || password.length < 4) {
       setMessage("Por favor, ingresa un correo y una contraseña válidos.");
       return;
@@ -26,58 +35,26 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // ✅ Llamamos a la función login() del contexto
+      const userData = await login(email, password);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // ✅ Guardar token y usuario
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("usuario", JSON.stringify(data.user));
-
-        // ✅ Sincronizar carrito local si existe
-        const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
-        if (carritoLocal.length > 0) {
-          const syncRes = await fetch(`${API_URL}/api/carrito/sincronizar`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${data.token}`,
-            },
-            body: JSON.stringify({ carritoLocal }),
-          });
-    
-
-          if (syncRes.ok) {
-            const carritoFinal = await syncRes.json();
-            localStorage.setItem("carrito", JSON.stringify(carritoFinal));
-            console.log("Carrito final recibido:", carritoFinal);
-          }
-          
-
-        }
-
-        // ✅ Guardar usuario en contexto
-        setUsuario({ token: data.token, ...data.user });
-
-        // ✅ Redirigir al catálogo
-        navigate("/catalogo");
+      // ✅ Redirigir según el rol del usuario
+      if (userData?.rol === "admin") {
+        navigate("/admin/pedidos");
       } else {
-        // ❌ Mostrar error del backend
-        setMessage(data.msg || "Credenciales incorrectas.");
+        navigate("/catalogo");
       }
     } catch (err) {
-      console.error(err);
-      setMessage("Error de conexión con el servidor.");
+      console.error("⚠️ Error en login:", err);
+      setMessage(err.message || "Credenciales incorrectas o error del servidor.");
     } finally {
       setLoading(false);
     }
   };
 
+  //----------------------------------------
+  // 🔹 Renderizado del formulario de login
+  //----------------------------------------
   return (
     <div className="max-w-md mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
@@ -126,6 +103,7 @@ export default function Login() {
         </span>
       </p>
 
+      {/* Mensaje de error o advertencia */}
       {message && (
         <p className="mt-4 text-center text-red-600 font-medium">{message}</p>
       )}

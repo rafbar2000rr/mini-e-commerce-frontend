@@ -1,19 +1,23 @@
+//====================================================
+// AdminRoute.jsx
+// Bloquea rutas solo para administradores
+//====================================================
+
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-// 🔹 Permite acceso solo a administradores
 export default function AdminRoute() {
-  const { usuario } = useAuth();
+  const { usuario, loading } = useAuth();
 
-  // Si no hay usuario, redirige al login
-  if (!usuario) {
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return <p className="text-center mt-10 text-gray-500">Verificando permisos...</p>;
   }
 
-  // Si el usuario no es admin, lo redirige al inicio
-  if (usuario.rol !== "admin") {
+  // ❌ Si no hay usuario o su rol no es "admin", redirige al catálogo
+  if (!usuario || usuario.rol !== "admin") {
     return <Navigate to="/" replace />;
   }
 
-  return <Outlet />; // Muestra el contenido solo si es admin
+  // ✅ Mostrar el contenido del admin
+  return <Outlet />;
 }
