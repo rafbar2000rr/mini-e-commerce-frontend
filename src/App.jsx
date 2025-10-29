@@ -28,7 +28,7 @@ function App() {
     //-----------------------------------------------
     // 🌍 Contextos globales que envuelven toda la app
     //-----------------------------------------------
-    <AuthProvider>
+    
       <CarritoProvider>
         <Navbar />
 
@@ -45,17 +45,17 @@ function App() {
           <Route
             path="/carrito"
             element={
-              <ProtectedRoute>
+              
                 <Carrito />
-              </ProtectedRoute>
+              
             }
           />
           <Route
             path="/checkout"
             element={
-              <ProtectedRoute>
+              
                 <Checkout />
-              </ProtectedRoute>
+              
             }
           />
 
@@ -65,22 +65,22 @@ function App() {
           <Route
             path="/admin/pedidos"
             element={
-              <ProtectedRoute adminOnly>
+              
                 <AdminPedidos />
-              </ProtectedRoute>
+              
             }
           />
           <Route
             path="/admin/productos"
             element={
-              <ProtectedRoute adminOnly>
+              
                 <AdminProductos />
-              </ProtectedRoute>
+              
             }
           />
         </Routes>
       </CarritoProvider>
-    </AuthProvider>
+    
   );
 }
 
