@@ -5,12 +5,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 // Muestra el detalle completo de una orden
 //-------------------------------------------------
 export default function OrdenDetalle() {
-  const { id } = useParams(); // 🔹 Obtenemos el ID de la orden desde la URL
-  const navigate = useNavigate(); // 🔹 Para regresar a la lista de órdenes
-  const [orden, setOrden] = useState(null); // 🔹 Estado para la orden
-  const [error, setError] = useState(''); // 🔹 Estado para errores
-  const [loading, setLoading] = useState(true); // 🔹 Estado de carga
-  const API_URL = import.meta.env.VITE_API_URL; // 🔹 URL base de la API
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [orden, setOrden] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   //-----------------------------------------------
   // useEffect → trae los datos de la orden al montar
@@ -18,14 +18,13 @@ export default function OrdenDetalle() {
   useEffect(() => {
     (async () => {
       try {
-        const token = localStorage.getItem('token'); // 🔹 Traemos token
+        const token = localStorage.getItem('token');
         if (!token) {
           setError('No estás autenticada');
           setLoading(false);
           return;
         }
 
-        // 🔹 Llamada al backend para obtener la orden
         const res = await fetch(`${API_URL}/api/orders/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -44,12 +43,12 @@ export default function OrdenDetalle() {
         if (data.error) {
           setError(data.error);
         } else {
-          setOrden(data); // 🔹 Guardamos la orden en el estado
+          setOrden(data);
         }
       } catch (err) {
         setError(err.message || 'Error al obtener detalles de la orden');
       } finally {
-        setLoading(false); // 🔹 Terminó la carga
+        setLoading(false);
       }
     })();
   }, [id]);
@@ -95,10 +94,11 @@ export default function OrdenDetalle() {
   if (!orden) return <p className="p-8 text-gray-600">Orden no encontrada</p>;
 
   //-----------------------------------------------
-  // Función para obtener la URL correcta de la imagen
+  // ✅ Función para obtener imagen (snapshot o ref)
   //-----------------------------------------------
-  const getImagen = (imagen) => {
-    if (!imagen) return 'https://via.placeholder.com/80'; // placeholder
+  const getImagen = (producto) => {
+    const imagen = producto?.productoId?.imagen || producto?.imagen;
+    if (!imagen) return 'https://via.placeholder.com/80';
     return imagen.startsWith('http') ? imagen : `${API_URL}/uploads/${imagen}`;
   };
 
@@ -132,25 +132,15 @@ export default function OrdenDetalle() {
         <div className="space-y-4 mb-6">
           {orden.productos?.map((p, i) => (
             <div key={i} className="flex items-center gap-4 border-b pb-3">
-              {/* 🔹 Imagen del producto */}
               <img
-        src={getImagen(p.productoId?.imagen)}
-        alt={p.productoId?.nombre}
-        className="w-20 h-20 object-cover rounded"
-        />
-        <div>
-        <p className="font-medium text-gray-800">{p.productoId?.nombre}</p>
-      <p className="text-gray-600">
-        {(p.productoId?.precio ?? p.precio)?.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    })} x {p.cantidad ?? 1}
-  </p>
-</div>
-
+                src={getImagen(p)}
+                alt={p.productoId?.nombre || p.nombre || 'Producto eliminado'}
+                className="w-20 h-20 object-cover rounded"
+              />
               <div>
-                {/* 🔹 Nombre y precio x cantidad */}
-                <p className="font-medium text-gray-800">{p.productoId?.nombre}</p>
+                <p className="font-medium text-gray-800">
+                  {p.productoId?.nombre || p.nombre || 'Producto eliminado'}
+                </p>
                 <p className="text-gray-600">
                   {(p.productoId?.precio ?? p.precio)?.toLocaleString('en-US', {
                     style: 'currency',
@@ -162,7 +152,7 @@ export default function OrdenDetalle() {
           ))}
         </div>
 
-        {/* 🔹 Botones de acción */}
+        {/* 🔹 Botones */}
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
           <button
             onClick={() => navigate('/mis-ordenes')}
