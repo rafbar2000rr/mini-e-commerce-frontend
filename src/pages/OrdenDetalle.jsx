@@ -104,7 +104,7 @@ export default function OrdenDetalle() {
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">🛒 Detalle de la Orden</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800"> Detalle de la Orden</h2>
 
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
         {/* 🔹 Datos básicos de la orden */}
@@ -165,7 +165,7 @@ export default function OrdenDetalle() {
             onClick={descargarPDF}
             className="px-5 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
           >
-            Descargar PDF 🧾
+            Descargar PDF 
           </button>
         </div>
       </div>
