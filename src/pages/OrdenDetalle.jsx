@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 //-------------------------------------------------
 // Muestra el detalle completo de una orden
 //-------------------------------------------------
 export default function OrdenDetalle() {
   const { id } = useParams(); // 🔹 Obtenemos el ID de la orden desde la URL
+  const navigate = useNavigate(); // 🔹 Para regresar a la lista de órdenes
   const [orden, setOrden] = useState(null); // 🔹 Estado para la orden
   const [error, setError] = useState(''); // 🔹 Estado para errores
   const [loading, setLoading] = useState(true); // 🔹 Estado de carga
@@ -28,6 +29,12 @@ export default function OrdenDetalle() {
         const res = await fetch(`${API_URL}/api/orders/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (res.status === 401) {
+          setError('Tu sesión ha expirado. Inicia sesión nuevamente.');
+          setLoading(false);
+          return;
+        }
 
         if (!res.ok) throw new Error('Error al obtener la orden');
 
@@ -115,7 +122,8 @@ export default function OrdenDetalle() {
           <p className="mb-1"><span className="font-semibold">Nombre:</span> {orden.datosCliente?.nombre}</p>
           <p className="mb-1"><span className="font-semibold">Email:</span> {orden.datosCliente?.email}</p>
           <p>
-            <span className="font-semibold">Envío:</span> {orden.datosCliente?.direccion}, {orden.datosCliente?.ciudad}, {orden.datosCliente?.codigoPostal}
+            <span className="font-semibold">Envío:</span>{' '}
+            {orden.datosCliente?.direccion}, {orden.datosCliente?.ciudad}, {orden.datosCliente?.codigoPostal}
           </p>
         </div>
 
@@ -144,13 +152,22 @@ export default function OrdenDetalle() {
           ))}
         </div>
 
-        {/* 🔹 Botón descargar PDF */}
-        <button
-          onClick={descargarPDF}
-          className="mt-2 px-5 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
-        >
-          Descargar PDF 🧾
-        </button>
+        {/* 🔹 Botones de acción */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+          <button
+            onClick={() => navigate('/mis-ordenes')}
+            className="px-5 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+          >
+            ← Volver a mis órdenes
+          </button>
+
+          <button
+            onClick={descargarPDF}
+            className="px-5 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Descargar PDF 🧾
+          </button>
+        </div>
       </div>
     </div>
   );
