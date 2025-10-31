@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 export default function Navbar() {
   const { carrito, setCarrito, setUsuario } = useContext(CarritoContext);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [usuario, setUsuarioLocal] = useState(null); // 👈 nuevo estado local
+  const [usuario, setUsuarioLocal] = useState(null); // 👈 estado local del usuario
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -26,7 +26,6 @@ export default function Navbar() {
     setUsuario(null);
     setCarrito([]);
     setUsuarioLocal(null);
-
     setMenuOpen(false);
     navigate('/catalogo');
   };
@@ -51,10 +50,10 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4 relative">
-          {/* 👋 Mostrar saludo si hay sesión */}
+          {/* 👋 Saludo visible en pantallas medianas o grandes */}
           {usuario && (
             <span className="hidden sm:block text-sm font-medium">
-              Hola, {usuario.nombre}
+              Hola, {usuario.nombre || usuario.name} 💜
             </span>
           )}
 
@@ -69,8 +68,15 @@ export default function Navbar() {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white text-gray-700 rounded-xl shadow-[0_4px_12px_rgba(168,85,247,0.3)] overflow-hidden animate-fadeIn">
+                <div className="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-xl shadow-[0_4px_12px_rgba(168,85,247,0.3)] overflow-hidden animate-fadeIn">
                   <div className="absolute right-3 -top-2 w-3 h-3 bg-white rotate-45 shadow-sm"></div>
+
+                  {/* 👋 Saludo visible dentro del menú (ideal para móviles) */}
+                  {usuario && (
+                    <div className="px-4 py-2 text-sm font-medium text-violet-700 border-b border-violet-100">
+                      Hola, {usuario.nombre || usuario.name} 💜
+                    </div>
+                  )}
 
                   <Link
                     to="/mi-perfil"
