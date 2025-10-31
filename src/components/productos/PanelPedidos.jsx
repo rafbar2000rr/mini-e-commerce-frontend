@@ -32,7 +32,7 @@ export default function PanelPedidos() {
   //   setCargando(false);
   // }, [navigate]);
 
-  if (cargando) return <p className="p-8">Cargando...</p>;
+  // if (cargando) return <p className="p-8">Cargando...</p>;
 
   return (
     <div className="p-4">
