@@ -15,6 +15,7 @@ import DetalleProducto from './pages/DetalleProducto';
 import Checkout from './pages/Checkout';
 import RutaPublica from './components/RutaPublica';
 import MiPerfil from './pages/MiPerfil';
+import RutaAdmin from "./components/RutaAdmin";
 
 function App() {
   return (
@@ -85,10 +86,27 @@ function App() {
 
           
           {/* Admin */}
-          <Route path="/admin" element={<AdminLayout />}>
-          <Route path="productos" element={<PanelProductos />} />
-          <Route path="pedidos" element={<PanelPedidos />} />
-          </Route>
+          <Route
+  path="/admin/productos"
+  element={
+    <RutaAdmin>
+      <AdminLayout>
+        <PanelProductos />
+      </AdminLayout>
+    </RutaAdmin>
+  }
+/>
+
+<Route
+  path="/admin/pedidos"
+  element={
+    <RutaAdmin>
+      <AdminLayout>
+        <PanelPedidos />
+      </AdminLayout>
+    </RutaAdmin>
+  }
+/>
 
         
         </Routes>
