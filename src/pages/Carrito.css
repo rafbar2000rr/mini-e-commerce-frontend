@@ -95,14 +95,14 @@
   gap: 0.5rem;
 }
 
-/* .cantidad-control button {
+.cantidad-control button {
   background-color: #e0e0e0;
   border: none;
   padding: 0.3rem 0.7rem;
   font-size: 1rem;
   border-radius: 6px;
   cursor: pointer;
-} */
+}
 
 .cantidad-control button:hover {
   background-color: #d4d4d4;
