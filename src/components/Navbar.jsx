@@ -42,7 +42,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-violet-600 shadow-md">
+    <header className="sticky top-0 z-50 bg-purple-600 shadow-md">
       <nav className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center text-white">
         {/* Logo */}
         <Link to="/" className="text-lg font-semibold hover:text-violet-200 transition">
