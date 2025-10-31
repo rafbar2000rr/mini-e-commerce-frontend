@@ -1,21 +1,23 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { CarritoProvider } from './context/CarritoContext';
-import Navbar from '../src/components/Navbar';
-import Catalogo from './pages/Catalogo';
-import Carrito from './pages/Carrito';
-import MisOrdenes from './pages/MisOrdenes';
-import OrdenDetalle from './pages/OrdenDetalle';
-import RutaPrivada from '../src/components/RutaPrivada';
-import Login from './pages/Login';
-import Registro from './pages/Registro';
-import AdminLayout from '../src/components/productos/AdminLayout';
-import PanelProductos from '../src/components/productos/PanelProductos';
-import PanelPedidos from '../src/components/productos/PanelPedidos';
-import DetalleProducto from './pages/DetalleProducto';
-import Checkout from './pages/Checkout';
-import RutaPublica from './components/RutaPublica';
-import MiPerfil from './pages/MiPerfil';
-import RutaAdmin from "../src/components/productos/RutaAdmin";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { CarritoProvider } from "./context/CarritoContext";
+import Navbar from "./components/Navbar";
+import Catalogo from "./pages/Catalogo";
+import Carrito from "./pages/Carrito";
+import MisOrdenes from "./pages/MisOrdenes";
+import OrdenDetalle from "./pages/OrdenDetalle";
+import RutaPrivada from "./components/RutaPrivada";
+import RutaPublica from "./components/RutaPublica";
+import Login from "./pages/Login";
+import Registro from "./pages/Registro";
+import MiPerfil from "./pages/MiPerfil";
+import DetalleProducto from "./pages/DetalleProducto";
+import Checkout from "./pages/Checkout";
+
+// 🔹 Admin
+import RutaAdmin from "./components/productos/RutaAdmin";
+import AdminLayout from "./components/productos/AdminLayout";
+import PanelProductos from "./components/productos/PanelProductos";
+import PanelPedidos from "./components/productos/PanelPedidos";
 
 function App() {
   return (
@@ -23,14 +25,13 @@ function App() {
       <Router>
         <Navbar />
         <Routes>
-          {/* Redirigir la raíz al catálogo */}
+          {/* Página principal */}
           <Route path="/" element={<Navigate to="/catalogo" />} />
-
-          {/* Página inicial accesible sin login */}
           <Route path="/catalogo" element={<Catalogo />} />
+          <Route path="/producto/:id" element={<DetalleProducto />} />
 
-          {/* Login y Registro */}
-          <Route  
+          {/* Login / Registro */}
+          <Route
             path="/login"
             element={
               <RutaPublica>
@@ -46,10 +47,24 @@ function App() {
               </RutaPublica>
             }
           />
-          
-          <Route path="/carrito" element={<Carrito />} />
 
-          {/* Rutas protegidas */}
+          {/* Rutas protegidas (usuarios logueados) */}
+          <Route
+            path="/carrito"
+            element={
+              <RutaPrivada>
+                <Carrito />
+              </RutaPrivada>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <RutaPrivada>
+                <Checkout />
+              </RutaPrivada>
+            }
+          />
           <Route
             path="/mis-ordenes"
             element={
@@ -67,48 +82,27 @@ function App() {
             }
           />
           <Route
-            path="/checkout"
+            path="/mi-perfil"
             element={
-              <RutaPrivada>
-                <Checkout />
-              </RutaPrivada>
-            }
-          />
-          <Route
-             path="/mi-perfil"
-             element={
               <RutaPrivada>
                 <MiPerfil />
               </RutaPrivada>
-              }
+            }
           />
-          <Route path="/producto/:id" element={<DetalleProducto />} />
 
-          
-          {/* Admin */}
+          {/* 🔹 Rutas del Panel de Administración */}
           <Route
-  path="/admin/productos"
-  element={
-    <RutaAdmin>
-      <AdminLayout>
-        <PanelProductos />
-      </AdminLayout>
-    </RutaAdmin>
-  }
-/>
-
-<Route
-  path="/admin/pedidos"
-  element={
-    <RutaAdmin>
-      <AdminLayout>
-        <PanelPedidos />
-      </AdminLayout>
-    </RutaAdmin>
-  }
-/>
-
-        
+            path="/admin"
+            element={
+              <RutaAdmin>
+                <AdminLayout />
+              </RutaAdmin>
+            }
+          >
+            {/* 👇 Subrutas anidadas dentro del layout */}
+            <Route path="productos" element={<PanelProductos />} />
+            <Route path="pedidos" element={<PanelPedidos />} />
+          </Route>
         </Routes>
       </Router>
     </CarritoProvider>
