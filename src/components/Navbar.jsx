@@ -6,19 +6,27 @@ import { Link, useNavigate } from 'react-router-dom';
 export default function Navbar() {
   const { carrito, setCarrito, setUsuario } = useContext(CarritoContext);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [usuario, setUsuarioLocal] = useState(null); // 👈 nuevo estado local
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
+  // ✅ Obtener nombre de usuario si hay sesión
+  useEffect(() => {
+    const storedUser = localStorage.getItem('usuario');
+    if (storedUser) {
+      setUsuarioLocal(JSON.parse(storedUser));
+    }
+  }, []);
+
   // ✅ Cerrar sesión
   const handleLogout = () => {
-    // Borrar todo lo relacionado al usuario
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     localStorage.removeItem('carrito');
     setUsuario(null);
     setCarrito([]);
+    setUsuarioLocal(null);
 
-    // Cerrar el menú y redirigir al catálogo
     setMenuOpen(false);
     navigate('/catalogo');
   };
@@ -43,7 +51,14 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4 relative">
-          {/* Menú de usuario si hay sesión */}
+          {/* 👋 Mostrar saludo si hay sesión */}
+          {usuario && (
+            <span className="hidden sm:block text-sm font-medium">
+              Hola, {usuario.nombre}
+            </span>
+          )}
+
+          {/* Menú de usuario */}
           {token ? (
             <div className="relative user-menu">
               <button
