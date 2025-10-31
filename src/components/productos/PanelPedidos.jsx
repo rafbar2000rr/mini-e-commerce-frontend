@@ -13,24 +13,24 @@ export default function PanelPedidos() {
   const handleRefrescar = () => setRefrescar(!refrescar);
 
   // 🔹 Comprobar si el usuario es admin
-  useEffect(() => {
-    const userData = localStorage.getItem("usuario");
-    if (userData) {
-      const user = JSON.parse(userData);
-      setUsuario(user);
+  // useEffect(() => {
+  //   const userData = localStorage.getItem("usuario");
+  //   if (userData) {
+  //     const user = JSON.parse(userData);
+  //     setUsuario(user);
 
-      if (user.rol !== "admin") {
-        // 🚫 Usuario no admin: redirigir o mostrar mensaje
-        alert("❌ No tienes permisos para acceder al panel de administración.");
-        navigate("/"); // redirige al home o página segura
-      }
-    } else {
-      // 🚨 No hay usuario logueado
-      alert("❌ Debes iniciar sesión para acceder a esta página.");
-      navigate("/login");
-    }
-    setCargando(false);
-  }, [navigate]);
+  //     if (user.rol !== "admin") {
+  //       // 🚫 Usuario no admin: redirigir o mostrar mensaje
+  //       alert("❌ No tienes permisos para acceder al panel de administración.");
+  //       navigate("/"); // redirige al home o página segura
+  //     }
+  //   } else {
+  //     // 🚨 No hay usuario logueado
+  //     alert("❌ Debes iniciar sesión para acceder a esta página.");
+  //     navigate("/login");
+  //   }
+  //   setCargando(false);
+  // }, [navigate]);
 
   if (cargando) return <p className="p-8">Cargando...</p>;
 
