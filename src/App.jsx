@@ -83,24 +83,13 @@ function App() {
           />
           <Route path="/producto/:id" element={<DetalleProducto />} />
 
+          
           {/* Admin */}
-          <Route
-            path="/admin/productos"
-            element={
-              <AdminLayout>
-                <PanelProductos />
-              </AdminLayout>
-            }
-          />
+          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="productos" element={<PanelProductos />} />
+          <Route path="pedidos" element={<PanelPedidos />} />
+          </Route>
 
-          <Route
-            path="/admin/pedidos"
-            element={
-              <AdminLayout>
-                <PanelPedidos />
-              </AdminLayout>
-            }
-          />
         
         </Routes>
       </Router>
