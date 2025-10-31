@@ -53,7 +53,7 @@ export default function Navbar() {
           {/* 👋 Saludo visible en pantallas medianas o grandes */}
           {usuario && (
             <span className="hidden sm:block text-sm font-medium">
-              Hola, {usuario.nombre || usuario.name} 💜
+              Hola, {usuario.nombre || usuario.name} 
             </span>
           )}
 
