@@ -104,9 +104,9 @@
   cursor: pointer;
 }
 
-.cantidad-control button:hover {
+/* .cantidad-control button:hover {
   background-color: #d4d4d4;
-}
+} */
 
 .acciones-producto {
   display: flex;

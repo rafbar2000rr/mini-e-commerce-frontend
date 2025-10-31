@@ -89,7 +89,7 @@ function Carrito() {
                         eliminarDelCarrito(producto._id || producto.id)
                       }
                     >
-                      🗑️ Eliminar
+                      Eliminar
                     </button>
                   </div>
                 </div>
