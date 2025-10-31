@@ -5,17 +5,16 @@ export default function RutaAdmin({ children }) {
   const token = localStorage.getItem("token");
 
   if (!usuarioData || !token) {
-    alert("❌ Debes iniciar sesión para acceder.");
-    return <Navigate to="/login" />;
+    alert("❌ Debes iniciar sesión para acceder al panel de administración.");
+    return <Navigate to="/login" replace />;
   }
 
   const usuario = JSON.parse(usuarioData);
 
   if (usuario.rol !== "admin") {
     alert("❌ No tienes permisos para acceder al panel de administración.");
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
-  // ✅ Si todo está bien, renderiza el contenido interno
   return children;
 }

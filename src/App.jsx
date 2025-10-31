@@ -15,7 +15,7 @@ import DetalleProducto from './pages/DetalleProducto';
 import Checkout from './pages/Checkout';
 import RutaPublica from './components/RutaPublica';
 import MiPerfil from './pages/MiPerfil';
-import RutaAdmin from "./components/RutaAdmin";
+import RutaAdmin from "../src/components/productos/RutaAdmin";
 
 function App() {
   return (
