@@ -134,10 +134,20 @@ export default function OrdenDetalle() {
             <div key={i} className="flex items-center gap-4 border-b pb-3">
               {/* 🔹 Imagen del producto */}
               <img
-                src={getImagen(p.productoId?.imagen)}
-                alt={p.productoId?.nombre}
-                className="w-20 h-20 object-cover rounded"
-              />
+        src={getImagen(p.productoId?.imagen)}
+        alt={p.productoId?.nombre}
+        className="w-20 h-20 object-cover rounded"
+        />
+        <div>
+        <p className="font-medium text-gray-800">{p.productoId?.nombre}</p>
+      <p className="text-gray-600">
+        {(p.productoId?.precio ?? p.precio)?.toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    })} x {p.cantidad ?? 1}
+  </p>
+</div>
+
               <div>
                 {/* 🔹 Nombre y precio x cantidad */}
                 <p className="font-medium text-gray-800">{p.productoId?.nombre}</p>
