@@ -73,3 +73,58 @@
 .btn-vaciar:hover {
   background-color: #b91c1c; /* rojo más oscuro */
 }
+
+
+
+.producto-carrito {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  border-bottom: 1px solid #ddd;
+  padding: 1rem 0;
+}
+
+.info-producto {
+  flex: 1;
+}
+
+.cantidad-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cantidad-control button {
+  background-color: #e0e0e0;
+  border: none;
+  padding: 0.3rem 0.7rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cantidad-control button:hover {
+  background-color: #d4d4d4;
+}
+
+.acciones-producto {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-eliminar {
+  background-color: #f87171;
+  border: none;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-eliminar:hover {
+  background-color: #dc2626;
+}
