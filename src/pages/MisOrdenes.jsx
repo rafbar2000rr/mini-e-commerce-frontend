@@ -93,8 +93,8 @@ export default function MisOrdenes() {
       ) : (
         <ul className="space-y-4">
           {ordenes.map((o, i) => {
-            // ✅ Tomamos el primer producto → pero usando productoId (populado desde el backend)
-            const primerProducto = o.productos?.[0]?.productoId;
+            // ✅ Tomamos el primer producto (ya aplanado desde el backend)
+            const primerProducto = o.productos?.[0];
 
             return (
               <li key={o._id ?? i}>
@@ -102,7 +102,7 @@ export default function MisOrdenes() {
                   to={`/mis-ordenes/${o._id ?? ''}`}
                   className="flex items-center gap-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 border border-gray-200"
                 >
-                  {/* ✅ Miniatura usando productoId.imagen */}
+                  {/* ✅ Miniatura del primer producto */}
                   {primerProducto?.imagen ? (
                     <img
                       src={getImagen(primerProducto.imagen)}
