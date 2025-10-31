@@ -74,7 +74,7 @@ export default function Navbar() {
                   {/* 👋 Saludo visible dentro del menú (ideal para móviles) */}
                   {usuario && (
                     <div className="px-4 py-2 text-sm font-medium text-violet-700 border-b border-violet-100">
-                      Hola, {usuario.nombre || usuario.name} 💜
+                      Hola, {usuario.nombre || usuario.name} 
                     </div>
                   )}
 
