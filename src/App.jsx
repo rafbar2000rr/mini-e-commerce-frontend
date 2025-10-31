@@ -1,86 +1,110 @@
-//=========================================
-// App.jsx
-// Configura las rutas del sitio y aplica
-// protección según el tipo de usuario
-//=========================================
-
-import { Routes, Route } from "react-router-dom";
-
-// ✅ Contextos globales
-import { CarritoProvider } from "./context/CarritoContext";
-
-// ✅ Componentes principales
-import Navbar from "./components/Navbar";
-import Catalogo from "./pages/Catalogo";
-import Carrito from "./pages/Carrito";
-import Checkout from "./pages/Checkout";
-import Login from "./pages/Login";
-
-// ✅ Páginas de administrador
-import AdminPedidos from "./admin/AdminPedidos";
-import AdminProductos from "./admin/AdminProductos";
-
-// ✅ Ruta protegida universal
-import ProtectedRoute from "./routes/ProtectedRoute";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { CarritoProvider } from './context/CarritoContext';
+import Navbar from '../src/components/Navbar';
+import Catalogo from './pages/Catalogo';
+import Carrito from './pages/Carrito';
+import MisOrdenes from './pages/MisOrdenes';
+import OrdenDetalle from './pages/OrdenDetalle';
+import RutaPrivada from '../src/components/RutaPrivada';
+import Login from './pages/Login';
+import Registro from './pages/Registro';
+import AdminLayout from '../src/components/productos/AdminLayout';
+import PanelProductos from '../src/components/productos/PanelProductos';
+import PanelPedidos from '../src/components/productos/PanelPedidos';
+import DetalleProducto from './pages/DetalleProducto';
+import Checkout from './pages/Checkout';
+import RutaPublica from './components/RutaPublica';
+import MiPerfil from './pages/MiPerfil';
 
 function App() {
   return (
-    //-----------------------------------------------
-    // 🌍 Contextos globales que envuelven toda la app
-    //-----------------------------------------------
-    
-      <CarritoProvider>
+    <CarritoProvider>
+      <Router>
         <Navbar />
-
         <Routes>
-          {/* ------------------- */}
-          {/* 🌐 RUTAS PÚBLICAS */}
-          {/* ------------------- */}
-          <Route path="/" element={<Catalogo />} />
-          <Route path="/login" element={<Login />} />
+          {/* Redirigir la raíz al catálogo */}
+          <Route path="/" element={<Navigate to="/catalogo" />} />
 
-          {/* ----------------------------- */}
-          {/* 🛒 RUTAS PARA USUARIOS LOGUEADOS */}
-          {/* ----------------------------- */}
-          <Route
-            path="/carrito"
+          {/* Página inicial accesible sin login */}
+          <Route path="/catalogo" element={<Catalogo />} />
+
+          {/* Login y Registro */}
+          <Route  
+            path="/login"
             element={
-              
-                <Carrito />
-              
+              <RutaPublica>
+                <Login />
+              </RutaPublica>
+            }
+          />
+          <Route
+            path="/registro"
+            element={
+              <RutaPublica>
+                <Registro />
+              </RutaPublica>
+            }
+          />
+          
+          <Route path="/carrito" element={<Carrito />} />
+
+          {/* Rutas protegidas */}
+          <Route
+            path="/mis-ordenes"
+            element={
+              <RutaPrivada>
+                <MisOrdenes />
+              </RutaPrivada>
+            }
+          />
+          <Route
+            path="/mis-ordenes/:id"
+            element={
+              <RutaPrivada>
+                <OrdenDetalle />
+              </RutaPrivada>
             }
           />
           <Route
             path="/checkout"
             element={
-              
+              <RutaPrivada>
                 <Checkout />
-              
+              </RutaPrivada>
             }
           />
-
-          {/* ----------------------------- */}
-          {/* 🧑‍💼 RUTAS SOLO PARA ADMIN */}
-          {/* ----------------------------- */}
           <Route
-            path="/admin/pedidos"
-            element={
-              
-                <AdminPedidos />
-              
-            }
+             path="/mi-perfil"
+             element={
+              <RutaPrivada>
+                <MiPerfil />
+              </RutaPrivada>
+              }
           />
+          <Route path="/producto/:id" element={<DetalleProducto />} />
+
+          {/* Admin */}
           <Route
             path="/admin/productos"
             element={
-              
-                <AdminProductos />
-              
+              <AdminLayout>
+                <PanelProductos />
+              </AdminLayout>
             }
           />
+
+          <Route
+            path="/admin/pedidos"
+            element={
+              <AdminLayout>
+                <PanelPedidos />
+              </AdminLayout>
+            }
+          />
+        
         </Routes>
-      </CarritoProvider>
-    
+      </Router>
+    </CarritoProvider>
   );
 }
 

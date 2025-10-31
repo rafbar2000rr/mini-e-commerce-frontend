@@ -1,23 +1,20 @@
-//====================================================
-// Login.jsx
-// Página de inicio de sesión para usuarios y admin
-//====================================================
-
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // ✅ Ahora usamos AuthContext
+import { CarritoContext } from "../context/CarritoContext";
 
 export default function Login() {
-  //----------------------------------------
-  // 🔹 Estados para manejar campos y mensajes
-  //----------------------------------------
+  // Estados locales para manejar el formulario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ login viene del AuthContext
+
+  // ✅ Ahora obtenemos también setCarrito
+  const { setUsuario, setCarrito } = useContext(CarritoContext);
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   //----------------------------------------
   // 🔹 Manejar el login del usuario
@@ -35,25 +32,81 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // ✅ Llamamos a la función login() del contexto
-      const userData = await login(email, password);
+      // 🔹 Petición al backend
+      const res = await fetch(`${API_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // ✅ Redirigir según el rol del usuario
-      if (userData?.rol === "admin") {
-        navigate("/admin/pedidos");
+      const data = await res.json();
+
+      if (res.ok) {
+        // ✅ Guardar token y usuario (en localStorage)
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("usuario", JSON.stringify(data.user));
+
+        // ✅ Sincronizar carrito local si existe
+        const carritoLocal = JSON.parse(localStorage.getItem("carrito")) || [];
+
+        if (carritoLocal.length > 0) {
+          const syncRes = await fetch(`${API_URL}/api/carrito/sincronizar`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${data.token}`,
+            },
+            body: JSON.stringify({ carritoLocal }),
+          });
+
+          if (syncRes.ok) {
+            const carritoFinal = await syncRes.json();
+
+            // ✅ Guardar el carrito en localStorage
+            localStorage.setItem("carrito", JSON.stringify(carritoFinal));
+
+            // ✅ Actualizar el estado global del carrito inmediatamente
+            setCarrito(carritoFinal);
+
+            console.log("✅ Carrito sincronizado y actualizado en pantalla");
+          }
+        } else {
+          // 🧺 Si no hay carrito local, cargar el del usuario logueado (si existe)
+          const carritoRes = await fetch(`${API_URL}/api/carrito`, {
+            headers: { Authorization: `Bearer ${data.token}` },
+          });
+
+          if (carritoRes.ok) {
+            const carritoServidor = await carritoRes.json();
+            localStorage.setItem("carrito", JSON.stringify(carritoServidor));
+            setCarrito(carritoServidor);
+            console.log("✅ Carrito cargado desde el servidor");
+          }
+        }
+
+        // ✅ Guardar usuario en contexto global
+        setUsuario({ token: data.token, ...data.user });
+
+        // ✅ Redirigir según el rol
+        if (data.user.rol === "admin") {
+          navigate("/admin/pedidos");
+        } else {
+          navigate("/catalogo");
+        }
       } else {
-        navigate("/catalogo");
+        // ❌ Mostrar error del backend
+        setMessage(data.msg || "Credenciales incorrectas.");
       }
     } catch (err) {
-      console.error("⚠️ Error en login:", err);
-      setMessage(err.message || "Credenciales incorrectas o error del servidor.");
+      console.error(err);
+      setMessage("Error de conexión con el servidor.");
     } finally {
       setLoading(false);
     }
   };
 
   //----------------------------------------
-  // 🔹 Renderizado del formulario de login
+  // 🔹 Renderizado del formulario
   //----------------------------------------
   return (
     <div className="max-w-md mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
@@ -103,7 +156,6 @@ export default function Login() {
         </span>
       </p>
 
-      {/* Mensaje de error o advertencia */}
       {message && (
         <p className="mt-4 text-center text-red-600 font-medium">{message}</p>
       )}
