@@ -39,7 +39,7 @@ export default function Navbar() {
       <nav className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center text-white">
         {/* Logo */}
         <Link to="/" className="text-lg font-semibold hover:text-violet-200 transition">
-          Mini E-Commerce
+          mini e-commerce
         </Link>
 
         <div className="flex items-center gap-4 relative">
