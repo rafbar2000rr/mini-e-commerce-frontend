@@ -102,14 +102,26 @@ export default function OrdenDetalle() {
     return imagen.startsWith('http') ? imagen : `${API_URL}/uploads/${imagen}`;
   };
 
+  //-----------------------------------------------
+  // ✅ Obtener fecha formateada correctamente
+  //-----------------------------------------------
+  const fechaOrden = new Date(
+    orden.datosCliente?.fecha ?? orden.createdAt
+  ).toLocaleString('es-PE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800"> Detalle de la Orden</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        Detalle de la Orden
+      </h2>
 
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
         {/* 🔹 Datos básicos de la orden */}
         <p className="mb-2"><span className="font-semibold">ID:</span> {orden._id}</p>
-        <p className="mb-2"><span className="font-semibold">Fecha:</span> {new Date(orden.fecha).toLocaleString()}</p>
+        <p className="mb-2"><span className="font-semibold">Fecha:</span> {fechaOrden}</p>
         <p className="mb-2"><span className="font-semibold">Estado:</span> {orden.estado ?? 'Pendiente'}</p>
         <p className="mb-4">
           <span className="font-semibold">Total:</span>{' '}
@@ -130,30 +142,51 @@ export default function OrdenDetalle() {
         {/* 🔹 Lista de productos */}
         <h3 className="font-semibold text-gray-700 mb-3">Productos:</h3>
         <div className="space-y-4 mb-6">
-          {orden.productos?.map((p, i) => (
-            <div key={i} className="flex items-center gap-4 border-b pb-3">
-              <img
-                src={getImagen(p)}
-                alt={p.productoId?.nombre || p.nombre || 'Producto eliminado'}
-                className="w-20 h-20 object-cover rounded"
-              />
-              <div>
-                <p className="font-medium text-gray-800">
-                  {p.productoId?.nombre || p.nombre || 'Producto eliminado'}
-                </p>
-                <p className="text-gray-600">
-                  {(p.productoId?.precio ?? p.precio)?.toLocaleString('en-US', {
+          {orden.productos?.map((p, i) => {
+            const precioUnitario = p.precioPagado ?? p.precio ?? p.productoId?.precio ?? 0;
+            const subtotal = precioUnitario * (p.cantidad ?? 1);
+            return (
+              <div key={i} className="flex items-center gap-4 border-b pb-3">
+                <img
+                  src={getImagen(p)}
+                  alt={p.productoId?.nombre || p.nombre || 'Producto eliminado'}
+                  className="w-20 h-20 object-cover rounded"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800">
+                    {p.productoId?.nombre || p.nombre || 'Producto eliminado'}
+                  </p>
+                  <p className="text-gray-600">
+                    {precioUnitario.toLocaleString('en-US', {
+                      style: 'currency',
+                      currency: 'USD',
+                    })}{" "}
+                    × {p.cantidad ?? 1}
+                  </p>
+                </div>
+                <p className="font-semibold text-gray-800">
+                  {subtotal.toLocaleString('en-US', {
                     style: 'currency',
                     currency: 'USD',
-                  })} x {p.cantidad ?? 1}
+                  })}
                 </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
+        {/* 🔹 Total */}
+        <hr className="my-4" />
+        <p className="text-right text-lg font-bold">
+          Total:{' '}
+          {orden.total?.toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD',
+          })}
+        </p>
+
         {/* 🔹 Botones */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+        <div className="flex flex-col sm:flex-row gap-3 mt-6">
           <button
             onClick={() => navigate('/mis-ordenes')}
             className="px-5 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
@@ -165,7 +198,7 @@ export default function OrdenDetalle() {
             onClick={descargarPDF}
             className="px-5 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
           >
-            Descargar PDF 
+            Descargar PDF
           </button>
         </div>
       </div>
