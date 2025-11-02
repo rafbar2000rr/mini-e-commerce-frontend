@@ -155,22 +155,23 @@ function ListaPedidos({ usuario: usuarioProp }) {
         </td>
 
         {/* 🔹 Columna de acciones responsiva */}
-        <td className="p-2">
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <button
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full sm:w-auto"
-              onClick={() => alert(`Editar orden ${orden._id}`)}
-            >
-              Editar
-            </button>
-            <button
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded w-full sm:w-auto"
-              onClick={() => alert(`Eliminar orden ${orden._id}`)}
-            >
-              Eliminar
-            </button>
-          </div>
-        </td>
+       <td className="p-2">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2">
+    <button
+      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm shadow-sm transition-all w-full sm:w-auto"
+      onClick={() => alert(`Editar orden ${orden._id}`)}
+    >
+      Editar
+    </button>
+    <button
+      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm shadow-sm transition-all w-full sm:w-auto"
+      onClick={() => alert(`Eliminar orden ${orden._id}`)}
+    >
+      Eliminar
+    </button>
+  </div>
+</td>
+
       </tr>
     ))}
   </tbody>
