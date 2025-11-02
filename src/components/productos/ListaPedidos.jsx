@@ -8,7 +8,6 @@ function ListaPedidos({ usuario: usuarioProp }) {
   const [usuario, setUsuario] = useState(usuarioProp || null);
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // ✅ Obtener usuario del localStorage si no viene por props
   useEffect(() => {
     if (!usuarioProp) {
       const userData = localStorage.getItem("usuario");
@@ -66,13 +65,13 @@ function ListaPedidos({ usuario: usuarioProp }) {
   const getEstadoColor = (estado) => {
     switch (estado) {
       case "pendiente":
-        return { background: "#fff3cd", color: "#856404" };
+        return "bg-yellow-100 text-yellow-800";
       case "enviado":
-        return { background: "#cce5ff", color: "#004085" };
+        return "bg-blue-100 text-blue-800";
       case "entregado":
-        return { background: "#d4edda", color: "#155724" };
+        return "bg-green-100 text-green-800";
       default:
-        return {};
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -86,97 +85,141 @@ function ListaPedidos({ usuario: usuarioProp }) {
   });
 
   return (
-    <div>
-      <h2>Lista de Órdenes</h2>
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Lista de Órdenes</h2>
       <input
         type="text"
         placeholder="Buscar por cliente, email o estado..."
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
-        style={{
-          marginBottom: "15px",
-          padding: "8px",
-          width: "300px",
-          borderRadius: "5px",
-          border: "1px solid #ccc",
-        }}
+        className="mb-4 p-2 w-full max-w-md border rounded-lg"
       />
 
       {ordenesFiltradas.length === 0 ? (
         <p>No hay órdenes registradas</p>
       ) : (
-        <table
-  className="w-full border-collapse text-left"
->
-  <thead>
-    <tr className="bg-gray-100 text-gray-700">
-      <th className="p-2 border">ID</th>
-      <th className="p-2 border">Cliente</th>
-      <th className="p-2 border">Email</th>
-      <th className="p-2 border">Productos</th>
-      <th className="p-2 border">Total</th>
-      <th className="p-2 border">Fecha</th>
-      <th className="p-2 border">Estado</th>
-      <th className="p-2 border text-center">Acciones</th>
-    </tr>
-  </thead>
+        <>
+          {/* 💻 Tabla en pantallas grandes */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full border border-gray-300 rounded-lg">
+              <thead className="bg-gray-100 text-gray-700">
+                <tr>
+                  <th className="p-3 text-left">ID</th>
+                  <th className="p-3 text-left">Cliente</th>
+                  <th className="p-3 text-left">Email</th>
+                  <th className="p-3 text-left">Productos</th>
+                  <th className="p-3 text-left">Total</th>
+                  <th className="p-3 text-left">Fecha</th>
+                  <th className="p-3 text-left">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ordenesFiltradas.map((orden) => (
+                  <tr key={orden._id} className="border-t">
+                    <td className="p-3">{orden._id}</td>
+                    <td className="p-3">
+                      {orden.datosCliente?.nombre || orden.usuario?.nombre || "Sin cliente"}
+                    </td>
+                    <td className="p-3">
+                      {orden.datosCliente?.email || orden.usuario?.email || "-"}
+                    </td>
+                    <td className="p-3">
+                      <ul>
+                        {orden.productos.map((p, i) => (
+                          <li key={i}>
+                            {p.nombre} (x{p.cantidad}) — ${p.precio}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td className="p-3">${orden.total}</td>
+                    <td className="p-3">
+                      {new Date(orden.fecha).toLocaleDateString()}
+                    </td>
+                    <td className={`p-3 ${getEstadoColor(orden.estado)}`}>
+                      {usuario?.rol === "admin" ? (
+                        <select
+                          value={orden.estado}
+                          onChange={(e) => cambiarEstado(orden._id, e.target.value)}
+                          className="p-1 rounded border border-gray-300"
+                        >
+                          <option value="pendiente">Pendiente</option>
+                          <option value="enviado">Enviado</option>
+                          <option value="entregado">Entregado</option>
+                        </select>
+                      ) : (
+                        <span>{orden.estado}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-  <tbody>
-    {ordenesFiltradas.map((orden) => (
-      <tr key={orden._id} className="border-b hover:bg-gray-50">
-        <td className="p-2">{orden._id}</td>
-        <td className="p-2">{orden.datosCliente?.nombre || orden.usuario?.nombre || "Sin cliente"}</td>
-        <td className="p-2">{orden.datosCliente?.email || orden.usuario?.email || "-"}</td>
-        <td className="p-2">
-          <ul>
-            {orden.productos.map((p, i) => (
-              <li key={i}>
-                {p.nombre} (x{p.cantidad}) — ${p.precio}
-              </li>
+          {/* 📱 Tarjetas en móvil */}
+          <div className="block md:hidden space-y-4">
+            {ordenesFiltradas.map((orden) => (
+              <div
+                key={orden._id}
+                className="bg-white border rounded-lg p-4 shadow-sm"
+              >
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">ID:</span> {orden._id}
+                </p>
+                <p>
+                  <span className="font-semibold">Cliente:</span>{" "}
+                  {orden.datosCliente?.nombre || orden.usuario?.nombre || "Sin cliente"}
+                </p>
+                <p>
+                  <span className="font-semibold">Email:</span>{" "}
+                  {orden.datosCliente?.email || orden.usuario?.email || "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Productos:</span>
+                </p>
+                <ul className="ml-4 text-sm text-gray-700">
+                  {orden.productos.map((p, i) => (
+                    <li key={i}>
+                      {p.nombre} (x{p.cantidad}) — ${p.precio}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2">
+                  <span className="font-semibold">Total:</span> ${orden.total}
+                </p>
+                <p>
+                  <span className="font-semibold">Fecha:</span>{" "}
+                  {new Date(orden.fecha).toLocaleDateString()}
+                </p>
+                <div className="mt-2">
+                  <span
+                    className={`inline-block px-2 py-1 rounded text-sm font-medium ${getEstadoColor(
+                      orden.estado
+                    )}`}
+                  >
+                    {orden.estado}
+                  </span>
+                </div>
+
+                {/* 🩷 Botones uno debajo del otro */}
+                {usuario?.rol === "admin" && (
+                  <div className="mt-3 flex flex-col gap-2">
+                    <select
+                      value={orden.estado}
+                      onChange={(e) => cambiarEstado(orden._id, e.target.value)}
+                      className="p-2 rounded border border-gray-300 bg-gray-50 text-sm"
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="enviado">Enviado</option>
+                      <option value="entregado">Entregado</option>
+                    </select>
+                  </div>
+                )}
+              </div>
             ))}
-          </ul>
-        </td>
-        <td className="p-2">${orden.total}</td>
-        <td className="p-2">{new Date(orden.fecha).toLocaleDateString()}</td>
-        <td className="p-2" style={getEstadoColor(orden.estado)}>
-          {usuario?.rol === "admin" ? (
-            <select
-              value={orden.estado}
-              onChange={(e) => cambiarEstado(orden._id, e.target.value)}
-              className="p-1 border rounded cursor-pointer bg-white"
-            >
-              <option value="pendiente">Pendiente</option>
-              <option value="enviado">Enviado</option>
-              <option value="entregado">Entregado</option>
-            </select>
-          ) : (
-            <span>{orden.estado}</span>
-          )}
-        </td>
-
-        {/* 🔹 Columna de acciones responsiva */}
-       <td className="p-2">
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2">
-    <button
-      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm shadow-sm transition-all w-full sm:w-auto"
-      onClick={() => alert(`Editar orden ${orden._id}`)}
-    >
-      Editar
-    </button>
-    <button
-      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm shadow-sm transition-all w-full sm:w-auto"
-      onClick={() => alert(`Eliminar orden ${orden._id}`)}
-    >
-      Eliminar
-    </button>
-  </div>
-</td>
-
-      </tr>
-    ))}
-  </tbody>
-</table>
-
+          </div>
+        </>
       )}
     </div>
   );

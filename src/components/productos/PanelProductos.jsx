@@ -1,106 +1,185 @@
-import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import FormularioProducto from "./FormularioProducto";
-import ListaProductos from "./ListaProductos";
+import { useEffect, useState } from "react";
 
-export default function PanelProductos() {
-  const [productos, setProductos] = useState([]);
-  const [productoEditando, setProductoEditando] = useState(null);
-  const [categorias, setCategorias] = useState([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [search, setSearch] = useState("");
-  const [refrescar, setRefrescar] = useState(false);
-
+function ListaPedidos({ usuario: usuarioProp }) {
+  const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busqueda, setBusqueda] = useState("");
+  const [usuario, setUsuario] = useState(usuarioProp || null);
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔹 Cargar categorías al inicio
+  // ✅ Obtener usuario del localStorage si no viene por props
   useEffect(() => {
-    const fetchCategorias = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const resCategorias = await axios.get(`${API_URL}/api/categorias`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCategorias(resCategorias.data);
-      } catch (error) {
-        console.error("Error al cargar categorías:", error);
-      }
-    };
-    fetchCategorias();
+    if (!usuarioProp) {
+      const userData = localStorage.getItem("usuario");
+      if (userData) setUsuario(JSON.parse(userData));
+    }
+  }, [usuarioProp]);
+
+  useEffect(() => {
+    fetchOrdenes();
   }, []);
 
-  // 🔹 Cargar productos con búsqueda y paginación
-  const fetchProductos = useCallback(async () => {
+  const fetchOrdenes = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_URL}/api/productos`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { page, search },
-      });
-
-      setProductos(res.data.productos);
-      setPages(res.data.pages);
-    } catch (error) {
-      console.error("Error al cargar productos:", error);
-    }
-  }, [page, search, refrescar]);
-
-  useEffect(() => {
-    fetchProductos();
-  }, [fetchProductos]);
-
-  // 🔹 Cuando se agrega o edita un producto
-  const handleProductoAgregado = (nuevoProducto) => {
-    setRefrescar(prev => !prev); // fuerza recarga
-    setProductoEditando(null);
-  };
-
-  // 🔹 Eliminar producto
-  const handleEliminar = async (id) => {
-    if (!window.confirm("¿Seguro que quieres eliminar este producto?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/api/productos/${id}`, {
+      const res = await fetch(`${API_URL}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setRefrescar(prev => !prev);
-    } catch (error) {
-      console.error("Error al eliminar producto:", error);
+      if (!res.ok) throw new Error("Error al obtener órdenes");
+      const data = await res.json();
+      setOrdenes(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 🔹 Actualizar stock
-  const handleActualizarStock = async (id, cantidad) => {
+  const cambiarEstado = async (id, nuevoEstado) => {
+    const confirmar = window.confirm(
+      `¿Seguro que quieres cambiar el estado a "${nuevoEstado}"?`
+    );
+    if (!confirmar) return;
+
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.patch(`${API_URL}/api/productos/${id}/stock`, { cantidad }, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${API_URL}/api/orders/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ estado: nuevoEstado }),
       });
-      setProductos(prev => prev.map(p => p._id === id ? res.data.producto : p));
-    } catch (error) {
-      console.error("Error al actualizar stock:", error);
+      if (!res.ok) throw new Error("No tienes permiso para actualizar el estado");
+      fetchOrdenes();
+    } catch (err) {
+      alert("❌ " + err.message);
     }
   };
+
+  if (loading) return <p>Cargando órdenes...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (!usuario) return <p>Cargando usuario...</p>;
+
+  const getEstadoColor = (estado) => {
+    switch (estado) {
+      case "pendiente":
+        return { background: "#fff3cd", color: "#856404" };
+      case "enviado":
+        return { background: "#cce5ff", color: "#004085" };
+      case "entregado":
+        return { background: "#d4edda", color: "#155724" };
+      default:
+        return {};
+    }
+  };
+
+  const ordenesFiltradas = ordenes.filter((orden) => {
+    const texto = busqueda.toLowerCase();
+    return (
+      orden.datosCliente?.nombre?.toLowerCase().includes(texto) ||
+      orden.datosCliente?.email?.toLowerCase().includes(texto) ||
+      orden.estado?.toLowerCase().includes(texto)
+    );
+  });
 
   return (
-    <div className="space-y-8">
-      <FormularioProducto
-        onProductoAgregado={handleProductoAgregado}
-        productoEditando={productoEditando}
-        categorias={categorias}
+    <div>
+      <h2>Lista de Órdenes</h2>
+      <input
+        type="text"
+        placeholder="Buscar por cliente, email o estado..."
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        style={{
+          marginBottom: "15px",
+          padding: "8px",
+          width: "300px",
+          borderRadius: "5px",
+          border: "1px solid #ccc",
+        }}
       />
-      <ListaProductos
-        productos={productos}
-        onEditar={setProductoEditando}
-        onEliminar={handleEliminar}
-        onActualizarStock={handleActualizarStock}
-        page={page}
-        setPage={setPage}
-        pages={pages}
-        search={search}
-        setSearch={setSearch}
-      />
+
+      {ordenesFiltradas.length === 0 ? (
+        <p>No hay órdenes registradas</p>
+      ) : (
+        <table
+  className="w-full border-collapse text-left"
+>
+  <thead>
+    <tr className="bg-gray-100 text-gray-700">
+      <th className="p-2 border">ID</th>
+      <th className="p-2 border">Cliente</th>
+      <th className="p-2 border">Email</th>
+      <th className="p-2 border">Productos</th>
+      <th className="p-2 border">Total</th>
+      <th className="p-2 border">Fecha</th>
+      <th className="p-2 border">Estado</th>
+      <th className="p-2 border text-center">Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {ordenesFiltradas.map((orden) => (
+      <tr key={orden._id} className="border-b hover:bg-gray-50">
+        <td className="p-2">{orden._id}</td>
+        <td className="p-2">{orden.datosCliente?.nombre || orden.usuario?.nombre || "Sin cliente"}</td>
+        <td className="p-2">{orden.datosCliente?.email || orden.usuario?.email || "-"}</td>
+        <td className="p-2">
+          <ul>
+            {orden.productos.map((p, i) => (
+              <li key={i}>
+                {p.nombre} (x{p.cantidad}) — ${p.precio}
+              </li>
+            ))}
+          </ul>
+        </td>
+        <td className="p-2">${orden.total}</td>
+        <td className="p-2">{new Date(orden.fecha).toLocaleDateString()}</td>
+        <td className="p-2" style={getEstadoColor(orden.estado)}>
+          {usuario?.rol === "admin" ? (
+            <select
+              value={orden.estado}
+              onChange={(e) => cambiarEstado(orden._id, e.target.value)}
+              className="p-1 border rounded cursor-pointer bg-white"
+            >
+              <option value="pendiente">Pendiente</option>
+              <option value="enviado">Enviado</option>
+              <option value="entregado">Entregado</option>
+            </select>
+          ) : (
+            <span>{orden.estado}</span>
+          )}
+        </td>
+
+        {/* 🔹 Columna de acciones responsiva */}
+       <td className="p-2">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2">
+    <button
+      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm shadow-sm transition-all w-full sm:w-auto"
+      onClick={() => alert(`Editar orden ${orden._id}`)}
+    >
+      Editar
+    </button>
+    <button
+      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm shadow-sm transition-all w-full sm:w-auto"
+      onClick={() => alert(`Eliminar orden ${orden._id}`)}
+    >
+      Eliminar
+    </button>
+  </div>
+</td>
+
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+      )}
     </div>
   );
 }
+
+export default ListaPedidos;
