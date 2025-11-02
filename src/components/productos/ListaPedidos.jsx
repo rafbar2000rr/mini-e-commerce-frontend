@@ -106,63 +106,76 @@ function ListaPedidos({ usuario: usuarioProp }) {
         <p>No hay órdenes registradas</p>
       ) : (
         <table
-          border="1"
-          cellPadding="10"
-          style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}
-        >
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Email</th>
-              <th>Productos</th>
-              <th>Total</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordenesFiltradas.map((orden) => (
-              <tr key={orden._id}>
-                <td>{orden._id}</td>
-                <td>{orden.datosCliente?.nombre || orden.usuario?.nombre || "Sin cliente"}</td>
-                <td>{orden.datosCliente?.email || orden.usuario?.email || "-"}</td>
-                <td>
-                  <ul>
-                    {orden.productos.map((p, i) => (
-                      <li key={i}>
-                        {p.nombre} (x{p.cantidad}) — ${p.precio}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td>${orden.total}</td>
-                <td>{new Date(orden.fecha).toLocaleDateString()}</td>
-                <td style={getEstadoColor(orden.estado)}>
-                  {usuario?.rol === "admin" ? (
-                    <select
-                      value={orden.estado}
-                      onChange={(e) => cambiarEstado(orden._id, e.target.value)}
-                      style={{
-                        padding: "5px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                        background: "white",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <option value="pendiente">Pendiente</option>
-                      <option value="enviado">Enviado</option>
-                      <option value="entregado">Entregado</option>
-                    </select>
-                  ) : (
-                    <span>{orden.estado}</span>
-                  )}
-                </td>
-              </tr>
+  className="w-full border-collapse text-left"
+>
+  <thead>
+    <tr className="bg-gray-100 text-gray-700">
+      <th className="p-2 border">ID</th>
+      <th className="p-2 border">Cliente</th>
+      <th className="p-2 border">Email</th>
+      <th className="p-2 border">Productos</th>
+      <th className="p-2 border">Total</th>
+      <th className="p-2 border">Fecha</th>
+      <th className="p-2 border">Estado</th>
+      <th className="p-2 border text-center">Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {ordenesFiltradas.map((orden) => (
+      <tr key={orden._id} className="border-b hover:bg-gray-50">
+        <td className="p-2">{orden._id}</td>
+        <td className="p-2">{orden.datosCliente?.nombre || orden.usuario?.nombre || "Sin cliente"}</td>
+        <td className="p-2">{orden.datosCliente?.email || orden.usuario?.email || "-"}</td>
+        <td className="p-2">
+          <ul>
+            {orden.productos.map((p, i) => (
+              <li key={i}>
+                {p.nombre} (x{p.cantidad}) — ${p.precio}
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        </td>
+        <td className="p-2">${orden.total}</td>
+        <td className="p-2">{new Date(orden.fecha).toLocaleDateString()}</td>
+        <td className="p-2" style={getEstadoColor(orden.estado)}>
+          {usuario?.rol === "admin" ? (
+            <select
+              value={orden.estado}
+              onChange={(e) => cambiarEstado(orden._id, e.target.value)}
+              className="p-1 border rounded cursor-pointer bg-white"
+            >
+              <option value="pendiente">Pendiente</option>
+              <option value="enviado">Enviado</option>
+              <option value="entregado">Entregado</option>
+            </select>
+          ) : (
+            <span>{orden.estado}</span>
+          )}
+        </td>
+
+        {/* 🔹 Columna de acciones responsiva */}
+        <td className="p-2">
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <button
+              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full sm:w-auto"
+              onClick={() => alert(`Editar orden ${orden._id}`)}
+            >
+              Editar
+            </button>
+            <button
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded w-full sm:w-auto"
+              onClick={() => alert(`Eliminar orden ${orden._id}`)}
+            >
+              Eliminar
+            </button>
+          </div>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
       )}
     </div>
   );
