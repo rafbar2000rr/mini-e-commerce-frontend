@@ -178,49 +178,63 @@ export default function Checkout() {
 
           {/* Botón PayPal */}
           <PayPalButtons
-            style={{ layout: "vertical" }}
-            createOrder={async () => {
-              const productos = carrito.map((p) => ({
-                productoId: p._id || p.id,
-                cantidad: p.cantidad || 1,
-              }));
-              const res = await fetch(`${API_URL}/api/paypal/create-order`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ total, productos, datosCliente: cliente }),
-              });
-              const data = await res.json();
-              return data?.id;
-            }}
-            onApprove={async (data) => {
-              const token = localStorage.getItem("token");
-              const productos = carrito.map((p) => ({
-                productoId: p._id || p.id,
-                cantidad: p.cantidad || 1,
-              }));
-              const res = await fetch(`${API_URL}/api/paypal/capture-order/${data.orderID}`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ productos, datosCliente: cliente }),
-              });
-              const capture = await res.json();
+  style={{ layout: "vertical" }}
+  createOrder={async () => {
+    const productos = carrito.map((p) => ({
+      productoId: p._id || p.id,
+      nombre: p.nombre,
+      imagen: p.imagen,
+      cantidad: p.cantidad || 1,
+      precio: p.precio,
+      precioPagado: p.precio,
+    }));
 
-              if (!res.ok) {
-                const mensaje = capture?.detalle || capture?.error || "Error al procesar la compra";
-                setError(mensaje);
-                alert("❌ " + mensaje);
-                return;
-              }
+    const res = await fetch(`${API_URL}/api/paypal/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ total, productos, datosCliente: cliente }),
+    });
 
-              setCarrito([]);
-              localStorage.removeItem("carrito");
-              alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
-              window.location.href = "/mis-ordenes";
-            }}
-          />
+    const data = await res.json();
+    return data?.id;
+  }}
+  onApprove={async (data) => {
+    const token = localStorage.getItem("token");
+
+    const productos = carrito.map((p) => ({
+      productoId: p._id || p.id,
+      nombre: p.nombre,
+      imagen: p.imagen,
+      cantidad: p.cantidad || 1,
+      precio: p.precio,
+      precioPagado: p.precio,
+    }));
+
+    const res = await fetch(`${API_URL}/api/paypal/capture-order/${data.orderID}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ productos, datosCliente: cliente }),
+    });
+
+    const capture = await res.json();
+
+    if (!res.ok) {
+      const mensaje = capture?.detalle || capture?.error || "Error al procesar la compra";
+      setError(mensaje);
+      alert("❌ " + mensaje);
+      return;
+    }
+
+    setCarrito([]);
+    localStorage.removeItem("carrito");
+    alert("Pago completado con PayPal 💖 Tu pedido ha sido registrado.");
+    window.location.href = "/mis-ordenes";
+  }}
+/>
+
         </div>
       </div>
     </PayPalScriptProvider>
