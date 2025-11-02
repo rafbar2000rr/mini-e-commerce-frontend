@@ -130,7 +130,16 @@ export default function MisOrdenes() {
                   <div className="flex-1">
                     <p className="text-gray-700 mb-1">
                       <span className="font-semibold">Fecha:</span>{" "}
-                      {o.fecha ? new Date(o.fecha).toLocaleString() : "No disponible"}
+                      {(o.fecha || o.createdAt)
+                      ? new Date(o.fecha || o.createdAt).toLocaleString("es-PE", {
+                       day: "2-digit",
+                       month: "long",
+                       year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                       })
+                        : "No disponible"}
+
                     </p>
                     <p className="text-gray-700 mb-1">
                       <span className="font-semibold">Total:</span>{" "}
