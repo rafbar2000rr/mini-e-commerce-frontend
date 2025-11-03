@@ -11,14 +11,6 @@ function DetalleProducto() {
   const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
-  // 🔹 Validar usuario logueado
-  useEffect(() => {
-    const userData = localStorage.getItem("usuario");
-    if (!userData) {
-      navigate("/login"); // Redirige al login si no hay usuario
-    }
-  }, []);
-
   // 🔹 Cargar producto
   useEffect(() => {
     const fetchProducto = async () => {
@@ -41,6 +33,13 @@ function DetalleProducto() {
   if (!producto) return <p className="p-8 text-gray-600">Producto no encontrado</p>;
 
   const handleAgregar = () => {
+    const userData = localStorage.getItem("usuario");
+    if (!userData) {
+      // Si no hay login, redirige solo cuando intenta agregar
+      navigate("/login");
+      return;
+    }
+
     const productoNormalizado = { ...producto, _id: producto._id || producto.id };
     agregarAlCarrito(productoNormalizado);
     alert("Producto añadido al carrito 🛒✨");
