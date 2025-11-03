@@ -11,7 +11,7 @@ function DetalleProducto() {
   const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
-  // 🔹 Cargar producto
+  // 🔹 Cargar producto (sin importar si hay usuario o no)
   useEffect(() => {
     const fetchProducto = async () => {
       try {
@@ -32,17 +32,12 @@ function DetalleProducto() {
   if (error) return <p className="p-8 text-red-500">{error}</p>;
   if (!producto) return <p className="p-8 text-gray-600">Producto no encontrado</p>;
 
+  // 🔹 Agregar producto al carrito
   const handleAgregar = () => {
-    const userData = localStorage.getItem("usuario");
-    if (!userData) {
-      // Si no hay login, redirige solo cuando intenta agregar
-      navigate("/login");
-      return;
-    }
-
     const productoNormalizado = { ...producto, _id: producto._id || producto.id };
     agregarAlCarrito(productoNormalizado);
     alert("Producto añadido al carrito 🛒✨");
+    navigate("/catalogo"); // 👉 Volver al catálogo
   };
 
   const getImagenUrl = (imagen) => {
