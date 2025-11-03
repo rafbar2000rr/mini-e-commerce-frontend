@@ -48,15 +48,10 @@ function App() {
             }
           />
 
-          {/* Rutas protegidas (usuarios logueados) */}
-          <Route
-            path="/carrito"
-            element={
-              <RutaPrivada>
-                <Carrito />
-              </RutaPrivada>
-            }
-          />
+          {/* ✅ Carrito accesible sin login */}
+          <Route path="/carrito" element={<Carrito />} />
+
+          {/* 🛍️ Checkout sí requiere login */}
           <Route
             path="/checkout"
             element={
@@ -65,6 +60,8 @@ function App() {
               </RutaPrivada>
             }
           />
+
+          {/* 👤 Rutas protegidas para usuarios logueados */}
           <Route
             path="/mis-ordenes"
             element={
@@ -90,7 +87,7 @@ function App() {
             }
           />
 
-          {/* 🔹 Rutas del Panel de Administración */}
+          {/* 🧭 Panel de Administración */}
           <Route
             path="/admin"
             element={
@@ -99,7 +96,7 @@ function App() {
               </RutaAdmin>
             }
           >
-            {/* 👇 Subrutas anidadas dentro del layout */}
+            {/* Subrutas dentro del layout */}
             <Route path="productos" element={<PanelProductos />} />
             <Route path="pedidos" element={<PanelPedidos />} />
           </Route>

@@ -31,6 +31,17 @@ function Carrito() {
       alert("Tu carrito está vacío 🛍️");
       return;
     }
+
+    // 🔐 Verificar si el usuario está logueado
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Por favor inicia sesión para finalizar tu compra 💖");
+       localStorage.setItem("rutaDestino", "/checkout"); // 💾 Guardamos la ruta
+      navigate("/login");
+      return;
+    }
+
+    // ✅ Si está logueado, continuar al checkout
     navigate("/checkout");
   };
 

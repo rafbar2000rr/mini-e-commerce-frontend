@@ -3,17 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { CarritoContext } from "../context/CarritoContext";
 
 export default function Login() {
-  // Estados locales para manejar el formulario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-
-  // ✅ Ahora obtenemos también setCarrito
   const { setUsuario, setCarrito } = useContext(CarritoContext);
-
   const API_URL = import.meta.env.VITE_API_URL;
 
   //----------------------------------------
@@ -23,7 +19,6 @@ export default function Login() {
     e.preventDefault();
     setMessage("");
 
-    // ⚠️ Validación básica antes de enviar
     if (!email.includes("@") || password.length < 4) {
       setMessage("Por favor, ingresa un correo y una contraseña válidos.");
       return;
@@ -32,7 +27,6 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // 🔹 Petición al backend
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -42,7 +36,7 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        // ✅ Guardar token y usuario (en localStorage)
+        // ✅ Guardar token y usuario
         localStorage.setItem("token", data.token);
         localStorage.setItem("usuario", JSON.stringify(data.user));
 
@@ -61,17 +55,11 @@ export default function Login() {
 
           if (syncRes.ok) {
             const carritoFinal = await syncRes.json();
-
-            // ✅ Guardar el carrito en localStorage
             localStorage.setItem("carrito", JSON.stringify(carritoFinal));
-
-            // ✅ Actualizar el estado global del carrito inmediatamente
             setCarrito(carritoFinal);
-
             console.log("✅ Carrito sincronizado y actualizado en pantalla");
           }
         } else {
-          // 🧺 Si no hay carrito local, cargar el del usuario logueado (si existe)
           const carritoRes = await fetch(`${API_URL}/api/carrito`, {
             headers: { Authorization: `Bearer ${data.token}` },
           });
@@ -87,14 +75,18 @@ export default function Login() {
         // ✅ Guardar usuario en contexto global
         setUsuario({ token: data.token, ...data.user });
 
-        // ✅ Redirigir según el rol
-        if (data.user.rol === "admin") {
+        // ✨ Nuevo: redirigir al destino guardado si existe
+        const rutaDestino = localStorage.getItem("rutaDestino");
+        if (rutaDestino) {
+          localStorage.removeItem("rutaDestino"); // limpiar después de usar
+          navigate(rutaDestino); // ir al checkout, por ejemplo
+        } else if (data.user.rol === "admin") {
           navigate("/admin/pedidos");
         } else {
           navigate("/catalogo");
         }
+
       } else {
-        // ❌ Mostrar error del backend
         setMessage(data.msg || "Credenciales incorrectas.");
       }
     } catch (err) {
