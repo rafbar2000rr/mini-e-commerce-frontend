@@ -219,7 +219,11 @@ useEffect(() => {
       }
     }
   };
-
+  // -------------------------------------------------------------
+  // 🔹 Total de unidades en el carrito (no solo productos diferentes)
+  // -------------------------------------------------------------
+  const totalProductos = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+  
   // -------------------------------------------------------------
   // 💠 Exportar contexto
   // -------------------------------------------------------------
@@ -234,6 +238,7 @@ useEffect(() => {
         eliminarDelCarrito,
         vaciarCarrito,
         actualizarCantidad,
+        totalProductos,
       }}
     >
       {children}

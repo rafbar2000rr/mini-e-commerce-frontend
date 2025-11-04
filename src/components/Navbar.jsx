@@ -4,7 +4,7 @@ import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
-  const { carrito, setCarrito, setUsuario } = useContext(CarritoContext);
+  const { carrito, setCarrito, setUsuario, totalProductos } = useContext(CarritoContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [usuario, setUsuarioLocal] = useState(null); // 👈 estado local del usuario
   const navigate = useNavigate();
@@ -116,11 +116,12 @@ export default function Navbar() {
             className="relative flex items-center bg-white text-violet-700 px-3 py-2 rounded-xl text-sm font-medium hover:bg-violet-100 transition"
           >
             <FaShoppingCart size={18} />
-            {carrito.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {carrito.length}
-              </span>
+            {totalProductos > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            {totalProductos}
+            </span>
             )}
+
           </Link>
         </div>
       </nav>
